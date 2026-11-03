@@ -1,5 +1,7 @@
+import { readFileSync } from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { defineConfig } from 'vitest/config'
+import type { Plugin } from 'vite'
 import react from '@vitejs/plugin-react'
 import tailwindcss from '@tailwindcss/vite'
 import { VitePWA } from 'vite-plugin-pwa'
@@ -8,9 +10,27 @@ import { VitePWA } from 'vite-plugin-pwa'
 // interim project page, `/` once the repo lives at groomingflow.github.io.
 const base = process.env.BASE_PATH ?? '/'
 
+const pkg = JSON.parse(readFileSync(new URL('./package.json', import.meta.url), 'utf8')) as { version: string }
+
+/**
+ * The model runtime (onnxruntime-web) ships its WASM binaries through the
+ * library's versioned CDN and caches them offline after the first load; the
+ * copy Vite would bundle (26 MB) is never requested, so it is dropped.
+ */
+function dropBundledOrtWasm(): Plugin {
+  return {
+    name: 'drop-bundled-ort-wasm',
+    generateBundle(_options, bundle) {
+      for (const key of Object.keys(bundle)) if (/ort-wasm.*\.wasm$/.test(key)) delete bundle[key]
+    },
+  }
+}
+
 export default defineConfig({
   base,
+  define: { __APP_VERSION__: JSON.stringify(pkg.version) },
   plugins: [
+    dropBundledOrtWasm(),
     react(),
     tailwindcss(),
     VitePWA({

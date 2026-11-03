@@ -1,0 +1,79 @@
+{
+  "version": 1,
+  "description": "Slot templates per weather band, with per-occasion overrides. Slots are filled in the order listed; `required: false` slots may stay empty. `accept` lists roles (from taxonomy) or subcategories that may fill the slot; `max` caps the accessories slot. Occasion overrides set a slot to 'required', 'optional' or 'none', and may restrict `accept`.",
+  "bands": {
+    "heatwave": {
+      "slots": [
+        { "id": "base", "accept": ["base"], "required": true },
+        { "id": "bottoms", "accept": ["bottoms"], "required": true },
+        { "id": "shoes", "accept": ["shoes"], "required": true },
+        { "id": "belt", "accept": ["belt"], "required": false },
+        { "id": "accessories", "accept": ["accessory"], "required": false, "max": 2 }
+      ]
+    },
+    "hot": {
+      "slots": [
+        { "id": "base", "accept": ["base"], "required": true },
+        { "id": "bottoms", "accept": ["bottoms"], "required": true },
+        { "id": "shoes", "accept": ["shoes"], "required": true },
+        { "id": "belt", "accept": ["belt"], "required": false },
+        { "id": "accessories", "accept": ["accessory"], "required": false, "max": 2 }
+      ]
+    },
+    "warm": {
+      "slots": [
+        { "id": "base", "accept": ["base"], "required": true },
+        { "id": "layer", "accept": ["layer"], "required": false },
+        { "id": "bottoms", "accept": ["bottoms"], "required": true },
+        { "id": "shoes", "accept": ["shoes"], "required": true },
+        { "id": "belt", "accept": ["belt"], "required": false },
+        { "id": "accessories", "accept": ["accessory"], "required": false, "max": 2 }
+      ]
+    },
+    "mild": {
+      "slots": [
+        { "id": "base", "accept": ["base"], "required": true },
+        { "id": "layer", "accept": ["layer"], "required": false },
+        { "id": "outer", "accept": ["outer"], "required": false },
+        { "id": "bottoms", "accept": ["bottoms"], "required": true },
+        { "id": "shoes", "accept": ["shoes"], "required": true },
+        { "id": "belt", "accept": ["belt"], "required": false },
+        { "id": "accessories", "accept": ["accessory"], "required": false, "max": 2 }
+      ]
+    },
+    "cool": {
+      "slots": [
+        { "id": "base", "accept": ["base"], "required": true },
+        { "id": "layer", "accept": ["layer"], "required": false },
+        { "id": "outer", "accept": ["outer"], "required": true },
+        { "id": "bottoms", "accept": ["bottoms"], "required": true },
+        { "id": "shoes", "accept": ["shoes"], "required": true },
+        { "id": "belt", "accept": ["belt"], "required": false },
+        { "id": "accessories", "accept": ["accessory"], "required": false, "max": 2 }
+      ]
+    },
+    "cold": {
+      "slots": [
+        { "id": "base", "accept": ["base"], "required": true },
+        { "id": "layer", "accept": ["layer"], "required": true },
+        { "id": "outer", "accept": ["outer"], "required": true },
+        { "id": "bottoms", "accept": ["bottoms"], "required": true },
+        { "id": "shoes", "accept": ["shoes"], "required": true },
+        { "id": "belt", "accept": ["belt"], "required": false },
+        { "id": "accessories", "accept": ["accessory"], "required": false, "max": 2 }
+      ]
+    }
+  },
+  "occasions": {
+    "office": { "belt": "required" },
+    "smart": { "belt": "required", "outer": "required", "outerAccept": ["blazer", "suit-jacket", "overcoat", "trench"] },
+    "home": { "outer": "none", "belt": "none", "accessories": "none" },
+    "gym": { "outer": "none", "belt": "none", "layer": "none", "accessories": "none", "baseAccept": ["t-shirt", "hoodie", "henley"], "bottomsAccept": ["joggers", "shorts"], "shoesAccept": ["athletic", "sneakers"] },
+    "evening": { "belt": "required" },
+    "date": { "belt": "required" },
+    "formal": { "belt": "required", "outer": "required", "outerAccept": ["suit-jacket"], "baseAccept": ["dress-shirt"], "bottomsAccept": ["suit-trousers", "dress-trousers"], "shoesAccept": ["derbies-oxfords"], "tie": "slot" },
+    "bar": {},
+    "casual": {},
+    "travel": { "layer": "optional" }
+  }
+}

@@ -1,0 +1,73 @@
+{
+  "version": 1,
+  "credits": "Rules distilled from Polina's seminar deck 'Grooming - Fashion Consulting & Coaching' (built on Real Men Real Style and Gentleman's Gazette). Slide ids sNNN refer to the 2026-07-12 verbatim transcription; room-NNN to the second-session room photos.",
+  "scoring": {
+    "neutral": 0.5,
+    "formalityCoherence": { "spread0": 1.0, "spread1": 1.0, "spread2": 0.6 }
+  },
+  "rules": [
+    { "id": "R01", "type": "match", "slots": ["shoes", "belt"], "on": "leatherColour", "exempt": [{ "subcategory": ["sneakers", "athletic"], "colour": ["white", "cream"] }, { "subcategory": ["woven", "canvas"] }], "slide": "s003", "note": "belt strap matches the shoes: black with black, brown family with brown family; white sneakers and fabric belts exempt (room-026)" },
+    { "id": "R01b", "type": "never", "a": { "subcategory": ["woven", "canvas"] }, "b": { "subcategory": ["derbies-oxfords", "loafers"] }, "slide": "room-026", "note": "fabric belts never with dress shoes" },
+    { "id": "R01c", "type": "never", "a": { "role": "shoes", "subcategory": ["derbies-oxfords", "loafers", "chelsea-boots"], "colour": ["navy", "blue"] }, "b": { "role": "belt", "colour": ["brown", "tan", "beige", "burgundy"] }, "slide": "room-026", "note": "blue dress shoes take black, dark brown or blue belts" },
+    { "id": "R02", "type": "never", "a": { "role": "shoes", "colour": ["black", "charcoal"], "subcategory": ["derbies-oxfords", "loafers", "chelsea-boots", "chukka-boots", "work-boots", "sneakers", "athletic", "espadrilles", "sandals"] }, "b": { "subcategory": ["leather-dress", "leather-casual"], "colour": ["brown", "dark-brown", "tan", "burgundy", "beige"] }, "slide": "s003", "note": "black shoes, brown leather belt" },
+    { "id": "R02b", "type": "never", "a": { "role": "shoes", "colour": ["brown", "dark-brown", "tan", "burgundy"] }, "b": { "subcategory": ["leather-dress", "leather-casual"], "colour": ["black", "charcoal"] }, "slide": "s003", "note": "brown shoes, black leather belt" },
+    { "id": "R03", "type": "formality", "slots": ["shoes", "belt"], "maxSpread": 1, "slide": "s003", "note": "belt and shoes within one formality step" },
+    { "id": "R04", "type": "palette", "name": "belt-colours", "applies": { "role": "belt" }, "colours": ["black", "charcoal", "brown", "dark-brown", "tan", "burgundy"], "inside": 0.75, "outside": 0.4, "slide": "s003" },
+
+    { "id": "R05", "type": "palette", "name": "base-trousers", "colours": ["black", "charcoal", "navy", "blue", "denim", "grey", "light-grey", "beige"], "slide": "s049" },
+    { "id": "R06", "type": "palette", "name": "base-tops", "colours": ["white", "pink", "light-blue", "light-grey", "blue"], "slide": "s050" },
+    { "id": "R07", "type": "pair", "a": { "role": "bottoms", "colour": ["navy", "blue", "denim"] }, "b": { "role": ["base", "layer"], "colour": ["white", "light-blue", "pink", "light-grey"] }, "score": 0.9, "slide": "s051" },
+    { "id": "R08", "type": "pair", "a": { "role": "bottoms", "colour": ["grey", "light-grey", "charcoal"] }, "b": { "role": ["base", "layer"], "colour": ["white", "pink", "light-blue", "blue"] }, "score": 0.9, "slide": "s052" },
+    { "id": "R09", "type": "pair", "a": { "role": "bottoms", "colour": ["black"] }, "b": { "role": ["base", "layer"], "colour": ["white", "cream", "light-blue", "pink", "light-grey", "beige"] }, "score": 0.85, "slide": "s053" },
+    { "id": "R10", "type": "pair", "a": { "role": "bottoms", "colour": ["black"] }, "b": { "role": ["base", "layer"], "colour": ["black"] }, "score": 0.7, "slide": "s053", "note": "total black works" },
+    { "id": "R11", "type": "pair", "a": { "role": "bottoms", "colour": ["black"] }, "b": { "role": "outer", "colour": ["grey", "light-grey", "charcoal", "tan", "beige"] }, "score": 0.8, "slide": "s053" },
+    { "id": "R12", "type": "pair", "a": { "role": "bottoms", "colour": ["beige", "cream"] }, "b": { "role": ["base", "layer"], "colour": ["white"] }, "score": 0.9, "slide": "s054" },
+    { "id": "R13", "type": "pair", "a": { "role": "bottoms", "colour": ["beige", "cream"] }, "b": { "role": ["base", "layer"], "colour": ["dark-green", "navy", "blue"] }, "score": 0.85, "slide": "s054" },
+    { "id": "R14", "type": "pair", "a": { "role": "bottoms", "colour": ["beige", "cream"] }, "b": { "role": ["base", "layer"], "colour": ["brown", "dark-brown", "black"] }, "score": 0.65, "slide": "s054" },
+    { "id": "R15", "type": "pair", "a": { "role": "bottoms", "colour": ["navy", "blue", "denim", "grey", "light-grey", "charcoal", "beige", "cream"] }, "b": { "role": "shoes", "colour": ["brown", "dark-brown", "tan", "burgundy", "black"] }, "score": 0.9, "slide": "s051" },
+    { "id": "R15b", "type": "pair", "a": { "role": "bottoms", "colour": ["navy", "blue", "denim", "grey", "light-grey", "charcoal", "beige", "cream"] }, "b": { "role": "shoes", "subcategory": ["sneakers"], "colour": ["white"] }, "score": 0.9, "slide": "s051" },
+    { "id": "R16", "type": "pair", "a": { "role": ["base", "layer"], "colour": ["white"] }, "b": { "role": "bottoms" }, "score": 0.85, "slide": "s077" },
+    { "id": "R17", "type": "pair", "a": { "colour": ["grey", "light-grey", "charcoal"] }, "b": { "colour": ["white"] }, "score": 0.85, "slide": "s077" },
+    { "id": "R18", "type": "pair", "a": { "colour": ["grey", "light-grey", "charcoal"] }, "b": { "family": "bright" }, "score": 0.75, "slide": "s077" },
+    { "id": "R19", "type": "pair", "a": { "colour": ["black"] }, "b": { "light": true }, "score": 0.8, "slide": "s077" },
+    { "id": "R20", "type": "lightness", "lighter": { "role": "base" }, "darker": { "role": "bottoms" }, "score": 0.8, "reversed": 0.35, "slide": "s059" },
+    { "id": "R21", "type": "avoid", "a": { "subcategory": ["shorts"] }, "score": 0.3, "slide": "s059" },
+
+    { "id": "R22a", "type": "pair", "a": { "pattern": ["solid"] }, "b": { "pattern": ["solid"] }, "score": 0.7, "slide": "s065" },
+    { "id": "R22b", "type": "pair", "a": { "pattern": ["solid"] }, "b": { "pattern": ["stripe", "check", "print"] }, "score": 0.7, "slide": "s065" },
+    { "id": "R22c", "type": "pair", "a": { "pattern": ["stripe", "check", "print"] }, "b": { "pattern": ["stripe", "check", "print"] }, "score": 0.35, "slide": "s065" },
+    { "id": "R23", "type": "limit", "what": "patterns", "max": 2, "slide": "room-014" },
+    { "id": "R24a", "type": "adjust", "a": { "pattern": ["check"] }, "formality": -0.5, "slide": "s067" },
+    { "id": "R24b", "type": "adjust", "a": { "pattern": ["print"] }, "formality": -1, "slide": "s068" },
+    { "id": "R25", "type": "pair", "a": { "subcategory": ["casual-shirt", "dress-shirt"], "pattern": ["check"] }, "b": { "subcategory": ["sweater", "cardigan", "t-shirt"] }, "score": 0.85, "slide": "s067" },
+
+    { "id": "R27", "type": "formality", "maxSpread": 2, "slide": "s064" },
+    { "id": "R28", "type": "pair", "a": { "subcategory": ["blazer"] }, "b": { "subcategory": ["t-shirt", "sweater", "polo"] }, "score": 0.7, "slide": "s060" },
+    { "id": "R29", "type": "pair", "a": { "subcategory": ["blazer", "suit-jacket"] }, "b": { "subcategory": ["dress-shirt"] }, "score": 0.9, "slide": "s060" },
+    { "id": "R30", "type": "occasion", "a": { "subcategory": ["joggers", "tracksuit"] }, "allowed": ["gym", "home"], "slide": "s086" },
+    { "id": "R31a", "type": "pair", "a": { "subcategory": ["athletic"] }, "b": { "subcategory": ["joggers"] }, "score": 0.8, "slide": "s098" },
+    { "id": "R31b", "type": "pair", "a": { "subcategory": ["athletic"] }, "b": { "subcategory": ["jeans"] }, "score": 0.7, "slide": "s098" },
+    { "id": "R31c", "type": "pair", "a": { "subcategory": ["athletic"] }, "b": { "subcategory": ["chinos"] }, "score": 0.4, "slide": "s098" },
+    { "id": "R31d", "type": "pair", "a": { "subcategory": ["athletic"] }, "b": { "subcategory": ["dress-trousers", "suit-trousers"] }, "score": 0.2, "slide": "s098" },
+    { "id": "R32", "type": "avoid", "a": { "subcategory": ["sandals"] }, "score": 0.3, "slide": "s099" },
+    { "id": "R33a", "type": "adjust", "a": { "subcategory": ["jeans"], "colour": ["black", "navy"] }, "formality": 0.5, "slide": "s085" },
+    { "id": "R33b", "type": "adjust", "a": { "subcategory": ["jeans"], "colour": ["light-blue"] }, "formality": -0.5, "slide": "s085" },
+
+    { "id": "R36", "type": "limit", "what": "layers", "max": 3, "slide": "s060" },
+    { "id": "R37", "type": "lightness", "lighter": { "role": "base" }, "darker": { "role": "outer" }, "score": 0.8, "reversed": 0.4, "slide": "room-025" },
+    { "id": "R38", "type": "pair", "a": { "subcategory": ["overcoat"] }, "b": { "subcategory": ["suit-jacket", "blazer"] }, "score": 0.8, "slide": "s005" },
+    { "id": "R39", "type": "pair", "a": { "subcategory": ["trench"] }, "b": { "subcategory": ["jeans"] }, "score": 0.8, "slide": "s014" },
+    { "id": "R40", "type": "pair", "a": { "subcategory": ["trench"] }, "b": { "subcategory": ["suit-jacket"] }, "score": 0.4, "slide": "s014" },
+    { "id": "R41", "type": "palette", "name": "coat-colours", "applies": { "subcategory": ["overcoat"] }, "colours": ["grey", "light-grey", "charcoal", "beige", "tan", "blue", "navy", "black"], "inside": 0.75, "outside": 0.5, "slide": "s025" },
+
+    { "id": "R42", "type": "palette", "name": "dress-shoe-colours", "applies": { "subcategory": ["derbies-oxfords", "loafers", "chelsea-boots"] }, "colours": ["black", "brown", "dark-brown", "tan", "burgundy"], "inside": 0.75, "outside": 0.4, "slide": "s100" },
+    { "id": "R43", "type": "palette", "name": "sneaker-colours", "applies": { "subcategory": ["sneakers"] }, "colours": ["white", "cream", "black", "light-grey", "blue", "navy"], "inside": 0.75, "outside": 0.4, "slide": "s101" },
+
+    { "id": "R44", "type": "requires", "a": { "subcategory": ["necklace"] }, "b": { "subcategory": ["t-shirt"] }, "slide": "s046" },
+    { "id": "R45", "type": "never", "a": { "subcategory": ["pocket-square"] }, "b": { "subcategory": ["tie"] }, "same": ["colour", "pattern"], "slide": "s028" },
+    { "id": "R46a", "type": "adjust", "a": { "subcategory": ["pocket-square"], "colour": ["white", "cream"] }, "formality": 1, "slide": "s028" },
+    { "id": "R46b", "type": "adjust", "a": { "subcategory": ["pocket-square"], "pattern": ["print", "check", "stripe"] }, "formality": -1, "slide": "s028" },
+    { "id": "R47", "type": "palette", "name": "tie-colours", "applies": { "subcategory": ["tie"] }, "colours": ["navy", "purple", "dark-green", "burgundy", "light-blue", "pink", "orange"], "inside": 0.75, "outside": 0.5, "slide": "s020" },
+    { "id": "R49", "type": "never", "a": { "subcategory": ["watch-sport", "smartwatch"] }, "b": { "subcategory": ["suit-jacket", "tie"] }, "slide": "s040" }
+  ]
+}

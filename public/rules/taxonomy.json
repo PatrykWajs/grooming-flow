@@ -1,0 +1,130 @@
+{
+  "version": 1,
+  "description": "Menswear taxonomy. Editable data, not code. `role` is the slot family the engine fills (base, layer, outer, bottoms, shoes, belt, accessory, set). `formality` 1 athletic - 2 casual - 3 smart casual - 4 business - 5 formal and `warmth` 1 summer - 5 deep winter are the defaults a new item starts with; the user can change them per item. `prompt` is the English phrase the on-device classifier scores. Deviations from the brief's table: shoes split into sneakers (casual, deck s101) and athletic (gym, deck s098); watch split into dress / sport / smartwatch (deck s034-s040); necklace added (deck s046).",
+  "categories": [
+    {
+      "id": "tops",
+      "en": "Tops",
+      "el": "Πάνω",
+      "subcategories": [
+        { "id": "t-shirt", "en": "T-shirt", "el": "Μπλουζάκι", "role": "base", "formality": 2, "warmth": 1, "prompt": "a t-shirt" },
+        { "id": "polo", "en": "Polo", "el": "Πόλο", "role": "base", "formality": 3, "warmth": 1, "prompt": "a polo shirt" },
+        { "id": "casual-shirt", "en": "Casual shirt", "el": "Καθημερινό πουκάμισο", "role": "base", "formality": 3, "warmth": 2, "prompt": "a casual button-up shirt" },
+        { "id": "dress-shirt", "en": "Dress shirt", "el": "Επίσημο πουκάμισο", "role": "base", "formality": 4, "warmth": 2, "prompt": "a formal dress shirt" },
+        { "id": "henley", "en": "Henley", "el": "Henley", "role": "base", "formality": 2, "warmth": 2, "prompt": "a henley shirt" },
+        { "id": "sweater", "en": "Sweater / knit", "el": "Πουλόβερ", "role": "layer", "formality": 3, "warmth": 3, "prompt": "a knit sweater" },
+        { "id": "cardigan", "en": "Cardigan", "el": "Ζακέτα", "role": "layer", "formality": 3, "warmth": 3, "prompt": "a cardigan" },
+        { "id": "hoodie", "en": "Hoodie / sweatshirt", "el": "Φούτερ", "role": "layer", "formality": 1, "warmth": 3, "prompt": "a hoodie or sweatshirt" },
+        { "id": "vest", "en": "Vest / gilet", "el": "Αμάνικο γιλέκο", "role": "layer", "formality": 2, "warmth": 3, "prompt": "a sleeveless vest or gilet" }
+      ]
+    },
+    {
+      "id": "outerwear",
+      "en": "Outerwear",
+      "el": "Πανωφόρια",
+      "subcategories": [
+        { "id": "blazer", "en": "Blazer / sport coat", "el": "Σακάκι", "role": "outer", "formality": 4, "warmth": 3, "prompt": "a blazer or sport coat" },
+        { "id": "suit-jacket", "en": "Suit jacket", "el": "Σακάκι κοστουμιού", "role": "outer", "formality": 5, "warmth": 3, "prompt": "a suit jacket" },
+        { "id": "overshirt", "en": "Overshirt", "el": "Overshirt", "role": "layer", "formality": 2, "warmth": 2, "prompt": "an overshirt or shirt jacket" },
+        { "id": "denim-jacket", "en": "Denim jacket", "el": "Τζιν μπουφάν", "role": "outer", "formality": 2, "warmth": 3, "prompt": "a denim jacket" },
+        { "id": "leather-jacket", "en": "Leather jacket", "el": "Δερμάτινο μπουφάν", "role": "outer", "formality": 2, "warmth": 3, "prompt": "a leather jacket" },
+        { "id": "bomber", "en": "Bomber", "el": "Bomber", "role": "outer", "formality": 2, "warmth": 3, "prompt": "a bomber jacket" },
+        { "id": "field-jacket", "en": "Field jacket", "el": "Field jacket", "role": "outer", "formality": 2, "warmth": 3, "prompt": "a field jacket" },
+        { "id": "overcoat", "en": "Overcoat / topcoat", "el": "Παλτό", "role": "outer", "formality": 4, "warmth": 4, "prompt": "a wool overcoat" },
+        { "id": "puffer", "en": "Puffer", "el": "Φουσκωτό μπουφάν", "role": "outer", "formality": 1, "warmth": 5, "prompt": "a puffer jacket" },
+        { "id": "parka", "en": "Parka", "el": "Πάρκα", "role": "outer", "formality": 2, "warmth": 5, "prompt": "a parka" },
+        { "id": "trench", "en": "Trench / raincoat", "el": "Καπαρντίνα", "role": "outer", "formality": 3, "warmth": 3, "prompt": "a trench coat or raincoat" }
+      ]
+    },
+    {
+      "id": "bottoms",
+      "en": "Bottoms",
+      "el": "Παντελόνια",
+      "subcategories": [
+        { "id": "jeans", "en": "Jeans", "el": "Τζιν", "role": "bottoms", "formality": 2, "warmth": 2, "prompt": "a pair of jeans" },
+        { "id": "chinos", "en": "Chinos", "el": "Chinos", "role": "bottoms", "formality": 3, "warmth": 2, "prompt": "a pair of chinos" },
+        { "id": "dress-trousers", "en": "Dress trousers", "el": "Υφασμάτινο παντελόνι", "role": "bottoms", "formality": 4, "warmth": 2, "prompt": "a pair of dress trousers" },
+        { "id": "suit-trousers", "en": "Suit trousers", "el": "Παντελόνι κοστουμιού", "role": "bottoms", "formality": 5, "warmth": 2, "prompt": "a pair of suit trousers" },
+        { "id": "shorts", "en": "Shorts", "el": "Σορτς", "role": "bottoms", "formality": 1, "warmth": 1, "prompt": "a pair of shorts" },
+        { "id": "joggers", "en": "Joggers", "el": "Φόρμα", "role": "bottoms", "formality": 1, "warmth": 2, "prompt": "a pair of jogger sweatpants" },
+        { "id": "cargo", "en": "Cargo", "el": "Cargo", "role": "bottoms", "formality": 2, "warmth": 2, "prompt": "a pair of cargo trousers" }
+      ]
+    },
+    {
+      "id": "shoes",
+      "en": "Shoes",
+      "el": "Παπούτσια",
+      "subcategories": [
+        { "id": "sneakers", "en": "Sneakers", "el": "Sneakers", "role": "shoes", "formality": 2, "warmth": 2, "prompt": "a pair of clean casual sneakers" },
+        { "id": "athletic", "en": "Athletic / running", "el": "Αθλητικά", "role": "shoes", "formality": 1, "warmth": 2, "prompt": "a pair of running shoes" },
+        { "id": "loafers", "en": "Loafers", "el": "Loafers", "role": "shoes", "formality": 3, "warmth": 2, "prompt": "a pair of loafers" },
+        { "id": "chelsea-boots", "en": "Chelsea boots", "el": "Μποτάκια Chelsea", "role": "shoes", "formality": 3, "warmth": 4, "prompt": "a pair of chelsea boots" },
+        { "id": "chukka-boots", "en": "Chukka / desert boots", "el": "Μποτάκια chukka", "role": "shoes", "formality": 3, "warmth": 3, "prompt": "a pair of chukka desert boots" },
+        { "id": "work-boots", "en": "Work boots", "el": "Αρβύλες", "role": "shoes", "formality": 2, "warmth": 4, "prompt": "a pair of work boots" },
+        { "id": "derbies-oxfords", "en": "Derbies / oxfords", "el": "Δετά παπούτσια", "role": "shoes", "formality": 4, "warmth": 2, "prompt": "a pair of leather dress shoes" },
+        { "id": "sandals", "en": "Sandals", "el": "Σανδάλια", "role": "shoes", "formality": 1, "warmth": 1, "prompt": "a pair of sandals" },
+        { "id": "espadrilles", "en": "Espadrilles", "el": "Εσπαντρίγιες", "role": "shoes", "formality": 2, "warmth": 1, "prompt": "a pair of espadrilles" }
+      ]
+    },
+    {
+      "id": "belts",
+      "en": "Belts",
+      "el": "Ζώνες",
+      "subcategories": [
+        { "id": "leather-dress", "en": "Leather dress belt", "el": "Δερμάτινη επίσημη ζώνη", "role": "belt", "formality": 4, "warmth": 1, "prompt": "a thin leather dress belt" },
+        { "id": "leather-casual", "en": "Leather casual belt", "el": "Δερμάτινη casual ζώνη", "role": "belt", "formality": 3, "warmth": 1, "prompt": "a wide casual leather belt" },
+        { "id": "woven", "en": "Woven belt", "el": "Πλεκτή ζώνη", "role": "belt", "formality": 2, "warmth": 1, "prompt": "a woven belt" },
+        { "id": "canvas", "en": "Canvas / web belt", "el": "Υφασμάτινη ζώνη", "role": "belt", "formality": 2, "warmth": 1, "prompt": "a canvas web belt" }
+      ]
+    },
+    {
+      "id": "accessories",
+      "en": "Accessories",
+      "el": "Αξεσουάρ",
+      "subcategories": [
+        { "id": "watch-dress", "en": "Dress watch", "el": "Κομψό ρολόι", "role": "accessory", "formality": 4, "warmth": 1, "prompt": "a dress watch with a leather strap" },
+        { "id": "watch-sport", "en": "Sport / field watch", "el": "Σπορ ρολόι", "role": "accessory", "formality": 2, "warmth": 1, "prompt": "a sports chronograph watch" },
+        { "id": "smartwatch", "en": "Smartwatch", "el": "Smartwatch", "role": "accessory", "formality": 1, "warmth": 1, "prompt": "a smartwatch" },
+        { "id": "sunglasses", "en": "Sunglasses", "el": "Γυαλιά ηλίου", "role": "accessory", "formality": 2, "warmth": 1, "prompt": "a pair of sunglasses" },
+        { "id": "cap", "en": "Cap", "el": "Καπέλο τζόκεϊ", "role": "accessory", "formality": 1, "warmth": 1, "prompt": "a baseball cap" },
+        { "id": "hat", "en": "Hat", "el": "Καπέλο", "role": "accessory", "formality": 3, "warmth": 2, "prompt": "a brimmed hat" },
+        { "id": "beanie", "en": "Beanie", "el": "Σκούφος", "role": "accessory", "formality": 1, "warmth": 4, "prompt": "a knit beanie" },
+        { "id": "scarf", "en": "Scarf", "el": "Κασκόλ", "role": "accessory", "formality": 3, "warmth": 4, "prompt": "a scarf" },
+        { "id": "gloves", "en": "Gloves", "el": "Γάντια", "role": "accessory", "formality": 3, "warmth": 4, "prompt": "a pair of gloves" },
+        { "id": "bag", "en": "Bag", "el": "Τσάντα", "role": "accessory", "formality": 3, "warmth": 1, "prompt": "a bag or backpack" },
+        { "id": "bracelet-ring", "en": "Bracelet / ring", "el": "Βραχιόλι / δαχτυλίδι", "role": "accessory", "formality": 2, "warmth": 1, "prompt": "a bracelet or a ring" },
+        { "id": "necklace", "en": "Necklace", "el": "Κολιέ", "role": "accessory", "formality": 1, "warmth": 1, "prompt": "a necklace or pendant on a cord" },
+        { "id": "tie", "en": "Tie", "el": "Γραβάτα", "role": "accessory", "formality": 5, "warmth": 1, "prompt": "a necktie" },
+        { "id": "pocket-square", "en": "Pocket square", "el": "Μαντήλι τσέπης", "role": "accessory", "formality": 4, "warmth": 1, "prompt": "a pocket square" }
+      ]
+    },
+    {
+      "id": "sets",
+      "en": "Sets",
+      "el": "Σετ",
+      "subcategories": [
+        { "id": "suit", "en": "Suit (jacket + trousers)", "el": "Κοστούμι", "role": "set", "formality": 5, "warmth": 3, "prompt": "a suit" },
+        { "id": "tracksuit", "en": "Tracksuit", "el": "Φόρμα σετ", "role": "set", "formality": 1, "warmth": 3, "prompt": "a tracksuit" }
+      ]
+    }
+  ],
+  "patterns": [
+    { "id": "solid", "en": "solid", "el": "μονόχρωμο", "prompt": "plain solid colour" },
+    { "id": "stripe", "en": "stripe", "el": "ριγέ", "prompt": "striped" },
+    { "id": "check", "en": "check / plaid", "el": "καρό", "prompt": "checked or plaid" },
+    { "id": "print", "en": "print", "el": "εμπριμέ", "prompt": "printed with a repeating pattern" },
+    { "id": "texture", "en": "texture", "el": "υφή", "prompt": "textured fabric" }
+  ],
+  "materials": [
+    { "id": "cotton", "en": "cotton", "el": "βαμβάκι", "warmth": 0, "rain": "ok" },
+    { "id": "wool", "en": "wool", "el": "μαλλί", "warmth": 1, "rain": "ok" },
+    { "id": "linen", "en": "linen", "el": "λινό", "warmth": -1, "rain": "ok" },
+    { "id": "denim", "en": "denim", "el": "τζιν", "warmth": 0, "rain": "ok" },
+    { "id": "leather", "en": "leather", "el": "δέρμα", "warmth": 1, "rain": "ok" },
+    { "id": "suede", "en": "suede", "el": "καστόρι", "warmth": 1, "rain": "excluded" },
+    { "id": "synthetic", "en": "synthetic", "el": "συνθετικό", "warmth": 0, "rain": "ok" },
+    { "id": "knit", "en": "knit", "el": "πλεκτό", "warmth": 1, "rain": "ok" },
+    { "id": "canvas", "en": "canvas", "el": "καραβόπανο", "warmth": 0, "rain": "excluded" },
+    { "id": "other", "en": "other", "el": "άλλο", "warmth": 0, "rain": "ok" }
+  ]
+}

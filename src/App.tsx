@@ -1,87 +1,74 @@
-import { useEffect, useState } from 'react'
+import { useEffect } from 'react'
 import { useTranslation } from 'react-i18next'
-import { collectDiagnostics, type Diagnostics } from './platform/diagnostics'
-
-const TABS = ['today', 'wardrobe', 'history', 'settings'] as const
+import { getSettings } from './data/db'
+import { BottomNav, Toasts } from './ui/components'
+import { useEngineData, useSettings } from './ui/hooks'
+import { navigate, useRoute } from './ui/router'
+import { AddItems } from './ui/screens/AddItems'
+import { History } from './ui/screens/History'
+import { ItemDetail } from './ui/screens/ItemDetail'
+import { Onboarding } from './ui/screens/Onboarding'
+import { Settings } from './ui/screens/Settings'
+import { Today } from './ui/screens/Today'
+import { Wardrobe } from './ui/screens/Wardrobe'
 
 export default function App() {
-  const { t, i18n } = useTranslation()
-  const [diag, setDiag] = useState<Diagnostics | null>(null)
+  const route = useRoute()
+  const settings = useSettings()
+  const data = useEngineData()
+  const { i18n } = useTranslation()
 
   useEffect(() => {
-    void collectDiagnostics().then(setDiag)
+    void getSettings()
   }, [])
 
-  const isGreek = i18n.language.startsWith('el')
-  const yesNo = (value: boolean | null) =>
-    value === null ? t('common.unknown') : value ? t('common.yes') : t('common.no')
+  useEffect(() => {
+    if (!settings) return
+    document.documentElement.dataset.theme = settings.theme === 'auto' ? '' : settings.theme
+    if (settings.language !== 'auto' && !i18n.language.startsWith(settings.language)) void i18n.changeLanguage(settings.language)
+  }, [settings, i18n])
+
+  useEffect(() => {
+    if (settings && !settings.onboarded && route.name !== 'onboarding') navigate({ name: 'onboarding' })
+  }, [settings, route.name])
+
+  if (!settings || !data) {
+    return (
+      <div className="flex min-h-dvh items-center justify-center">
+        <span className="text-sm text-[var(--muted)]">…</span>
+      </div>
+    )
+  }
+
+  let screen: React.ReactNode
+  switch (route.name) {
+    case 'onboarding':
+      screen = <Onboarding />
+      break
+    case 'wardrobe':
+      screen = <Wardrobe />
+      break
+    case 'add':
+      screen = <AddItems />
+      break
+    case 'item':
+      screen = <ItemDetail id={route.id} />
+      break
+    case 'history':
+      screen = <History />
+      break
+    case 'settings':
+      screen = <Settings />
+      break
+    default:
+      screen = <Today />
+  }
 
   return (
-    <div className="flex min-h-dvh flex-col">
-      <header className="mx-auto flex w-full max-w-xl items-center justify-between px-4 pb-3 pt-[max(1rem,env(safe-area-inset-top))]">
-        <h1 className="text-2xl font-semibold">{t('app.name')}</h1>
-        <button
-          type="button"
-          className="min-h-11 min-w-11 text-sm underline"
-          aria-label={t('settings.language')}
-          onClick={() => void i18n.changeLanguage(isGreek ? 'en' : 'el')}
-        >
-          {isGreek ? 'EN' : 'ΕΛ'}
-        </button>
-      </header>
-
-      <main className="mx-auto w-full max-w-xl flex-1 px-4 pb-24">
-        <p className="text-[var(--muted)]">{t('app.tagline')}</p>
-
-        <section className="mt-6 rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4">
-          <h2 className="text-lg font-semibold">{t('m0.title')}</h2>
-          <p className="mt-1 text-sm text-[var(--muted)]">{t('m0.lead')}</p>
-          {diag && (
-            <dl className="mt-4 grid grid-cols-[1fr_auto] gap-x-4 gap-y-2 text-sm">
-              <dt>{t('m0.standalone')}</dt>
-              <dd className="font-semibold">{yesNo(diag.standalone)}</dd>
-              <dt>{t('m0.webgpu')}</dt>
-              <dd className="font-semibold">{yesNo(diag.webgpu)}</dd>
-              <dt>{t('m0.wasmThreads')}</dt>
-              <dd className="font-semibold">{yesNo(diag.wasmThreads)}</dd>
-              <dt>{t('m0.persisted')}</dt>
-              <dd className="font-semibold">{yesNo(diag.persisted)}</dd>
-              <dt>{t('m0.quota')}</dt>
-              <dd className="font-semibold">
-                {diag.quotaMB != null ? `${diag.quotaMB} MB` : t('common.unknown')}
-              </dd>
-              <dt>{t('m0.usage')}</dt>
-              <dd className="font-semibold">
-                {diag.usageMB != null ? `${diag.usageMB} MB` : t('common.unknown')}
-              </dd>
-              <dt>{t('m0.language')}</dt>
-              <dd className="font-semibold">{diag.language}</dd>
-            </dl>
-          )}
-          {diag && !diag.standalone && <p className="mt-4 text-sm">{t('m0.installHint')}</p>}
-          {diag && (
-            <p className="mt-3 break-all text-xs text-[var(--muted)]">{diag.userAgent}</p>
-          )}
-        </section>
-      </main>
-
-      <nav
-        className="fixed inset-x-0 bottom-0 border-t border-[var(--line)] bg-[var(--bg)] pb-[env(safe-area-inset-bottom)]"
-        aria-label={t('nav.today')}
-      >
-        <ul className="mx-auto grid max-w-xl grid-cols-4">
-          {TABS.map((tab) => (
-            <li key={tab}>
-              <a
-                href={`#/${tab}`}
-                className="flex min-h-14 flex-col items-center justify-center text-xs"
-              >
-                {t(`nav.${tab}`)}
-              </a>
-            </li>
-          ))}
-        </ul>
-      </nav>
-    </div>
+    <>
+      {screen}
+      {route.name !== 'onboarding' && <BottomNav current={route.name} />}
+      <Toasts />
+    </>
   )
 }

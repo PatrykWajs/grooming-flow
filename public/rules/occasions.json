@@ -1,0 +1,17 @@
+{
+  "version": 1,
+  "description": "Occasions the user picks per day. `window` is the local time span the outfit is dressed for (feels-like temperature over that span, not the daily max); windows that cross midnight end on the next day. `formality` is the allowed [min, max] of the outfit's mean item formality. `rules` are keys the engine understands (see src/engine/occasions.ts).",
+  "occasions": [
+    { "id": "office", "en": "Office", "el": "Γραφείο", "window": ["08:00", "18:00"], "formality": [3, 4], "rules": { "noShorts": true, "noAthleticShoes": true, "sneakersSetting": "sneakersAtWork", "belt": "required" } },
+    { "id": "smart", "en": "Smart / meeting", "el": "Επίσημο / συνάντηση", "window": ["09:00", "19:00"], "formality": [4, 5], "rules": { "noShorts": true, "noAthleticShoes": true, "noSneakers": true, "outer": "tailoring", "leatherShoes": true, "belt": "required" } },
+    { "id": "casual", "en": "Casual day", "el": "Χαλαρή μέρα", "window": ["10:00", "20:00"], "formality": [2, 3], "rules": {} },
+    { "id": "home", "en": "Home / WFH", "el": "Σπίτι / τηλεργασία", "window": ["08:00", "22:00"], "formality": [1, 2], "rules": { "outer": "none", "belt": "none", "comfortFirst": true } },
+    { "id": "gym", "en": "Gym / sport", "el": "Γυμναστήριο", "window": ["18:00", "20:00"], "formality": [1, 1], "rules": { "athleticOnly": true, "outer": "none", "belt": "none" }, "userSetHour": true },
+    { "id": "evening", "en": "Evening out", "el": "Βραδινή έξοδος", "window": ["20:00", "01:00"], "formality": [3, 4], "rules": { "darkPalette": true, "noCaps": true, "belt": "required" } },
+    { "id": "bar", "en": "Bar", "el": "Μπαρ", "window": ["21:00", "02:00"], "formality": [2, 3], "rules": { "darkPalette": true, "noCaps": true, "comfortableShoes": true, "layerForWalkHome": true } },
+    { "id": "date", "en": "Date", "el": "Ραντεβού", "window": ["19:00", "24:00"], "formality": [3, 4], "rules": { "favouritesBoost": true, "belt": "required" } },
+    { "id": "formal", "en": "Formal event", "el": "Επίσημη εκδήλωση", "window": ["19:00", "24:00"], "formality": [5, 5], "rules": { "requireSuit": true, "dressShirt": true, "dressShoes": true, "tie": "slot", "belt": "required", "noSneakers": true, "noAthleticShoes": true }, "userSetHour": true },
+    { "id": "travel", "en": "Travel", "el": "Ταξίδι", "window": ["07:00", "22:00"], "formality": [2, 3], "rules": { "layersPreferred": true, "comfortableShoes": true } }
+  ],
+  "weekdayDefaults": { "1": "office", "2": "office", "3": "office", "4": "office", "5": "office", "6": "casual", "0": "home" }
+}
