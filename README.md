@@ -42,6 +42,7 @@ npm run dev            # http://localhost:5173/  (set BASE_PATH=/grooming-flow/ 
 npm run test:run       # engine, rules, weather, fairness, 90-day simulation
 npm run build          # tsc --noEmit + vite build → dist/ (BASE_PATH decides the deploy path)
 npm run embeddings     # regenerate public/rules/prompt-embeddings.json after editing taxonomy.json (downloads the text model once)
+python3 -I scripts/i18n-audit.py .   # every t('…') key in src/ exists in en.json; en and el have the same leaves (exit 1 otherwise)
 python3 scripts/screenshots.py http://127.0.0.1:4173/grooming-flow/ shots/   # phone-width screenshots, light + dark (empty wardrobe)
 python3 scripts/make-fixture-backup.py fixture.zip && python3 scripts/tour.py http://127.0.0.1:4173/grooming-flow/ fixture.zip tour/   # restores a labelled fixture wardrobe through Settings, walks the flow (where are you going, outfit, another one, wear it, evening, plan 3 days, coming days, wardrobe, item, add, settings, history), both themes
 python3 scripts/smoke-add.py http://127.0.0.1:5173/grooming-flow/ photo.jpg out/   # end-to-end: onboarding → location → photo → classify → confirm → Today
