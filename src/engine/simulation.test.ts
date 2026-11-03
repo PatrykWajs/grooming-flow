@@ -83,6 +83,9 @@ describe('90-day fairness simulation', () => {
     // black casual belt, suede and canvas shoes that rain excludes). The pilot
     // measures the owner's real wardrobe against the ±20 % target. No eligible
     // item may stay unworn.
+    // Belts and accessories follow the shoes (the belt-matches-shoes rule) and
+    // the weather (sunglasses, scarves), so for them only "never forgotten" is
+    // asserted; their share still counts towards the ±20 % figure below.
     const failures: string[] = []
     const within20: boolean[] = []
     let checked = 0
@@ -92,7 +95,8 @@ describe('90-day fairness simulation', () => {
       const expected = Math.round(fairShare.get(item.id) ?? 0)
       within20.push(Math.abs(item.wearCount - expected) <= Math.max(1, 0.2 * expected))
       const tolerance = Math.max(3, 0.35 * expected)
-      if (item.wearCount === 0 || Math.abs(item.wearCount - expected) > tolerance) {
+      const follower = item.role === 'belt' || item.role === 'accessory'
+      if (item.wearCount === 0 || (!follower && Math.abs(item.wearCount - expected) > tolerance)) {
         failures.push(`${item.role}/${item.id} (${item.colourPrimary}): worn ${item.wearCount}, fair share ${expected} over ${item.eligibleDays} eligible days`)
       }
     }

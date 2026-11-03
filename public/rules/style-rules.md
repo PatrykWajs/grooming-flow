@@ -34,7 +34,7 @@ Colour words map to the app's 24-colour palette: "blue trousers" = navy / blue /
 - **R17 (pair 0.85)** Grey with white; grey is the wildcard. `s077`
 - **R18 (pair 0.75)** A grey item next to a bright item: grey calms a bold outfit. `s077`
 - **R19 (pair 0.8)** Black next to light colours: black gives intensity to a light outfit. `s077`
-- **R20 (lightness 0.8)** Light on top, dark on the bottom; the reverse scores 0.35. `s059`
+- **R20 (lightness 0.8)** Light on top, dark on the bottom; the reverse scores 0.45 (the deck says "generally", so dark tops are discouraged, not banned). `s059`
 - **R21 (soft, avoid 0.3)** Shorts are avoided. `s059` (the occasion rules of the app already ban them at the office)
 
 ## C. Patterns

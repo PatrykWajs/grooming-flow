@@ -30,7 +30,7 @@
     { "id": "R17", "type": "pair", "a": { "colour": ["grey", "light-grey", "charcoal"] }, "b": { "colour": ["white"] }, "score": 0.85, "slide": "s077" },
     { "id": "R18", "type": "pair", "a": { "colour": ["grey", "light-grey", "charcoal"] }, "b": { "family": "bright" }, "score": 0.75, "slide": "s077" },
     { "id": "R19", "type": "pair", "a": { "colour": ["black"] }, "b": { "light": true }, "score": 0.8, "slide": "s077" },
-    { "id": "R20", "type": "lightness", "lighter": { "role": "base" }, "darker": { "role": "bottoms" }, "score": 0.8, "reversed": 0.35, "slide": "s059" },
+    { "id": "R20", "type": "lightness", "lighter": { "role": "base" }, "darker": { "role": "bottoms" }, "score": 0.8, "reversed": 0.45, "slide": "s059", "note": "the deck says 'generally': a soft preference, not a ban on dark tops" },
     { "id": "R21", "type": "avoid", "a": { "subcategory": ["shorts"] }, "score": 0.3, "slide": "s059" },
 
     { "id": "R22a", "type": "pair", "a": { "pattern": ["solid"] }, "b": { "pattern": ["solid"] }, "score": 0.7, "slide": "s065" },

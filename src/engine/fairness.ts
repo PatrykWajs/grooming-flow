@@ -77,6 +77,8 @@ export function rotationScores(
 
       const isNew = daysBetween(item.addedAt, date) < NEW_ITEM_DAYS
       if (isNew) score = Math.min(1, score + NEW_ITEM_BOOST)
+      // Nothing sits forgotten: an item never worn after two weeks of eligibility is always a strong candidate.
+      if (item.wearCount === 0 && item.eligibleDays >= NEW_ITEM_DAYS) score = Math.max(score, 0.9)
 
       let cooldown = false
       if (item.lastWorn) {
