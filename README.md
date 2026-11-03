@@ -12,7 +12,7 @@ Free, local-first wardrobe assistant. Photograph what you own, the app sorts it 
 | --- | --- |
 | M0 Address + shell, Pages deploy, phone capability probe | done (deployed from the `gh-pages` branch; the Actions workflow is in the repo but not yet pushed, see Open items) |
 | M1 Style rules from the owner's slides | done: `public/rules/style-rules.md` (plain words, slide ids) + `style-rules.json` (49 rules) + unit tests |
-| M2 Add items (capture, on-device classification, colour, duplicates, review cards) | built; verified in headless Chromium with a synthetic photo; accuracy on real wardrobe photos not yet measured |
+| M2 Add items (capture, on-device classification, colour, duplicates, review cards) | built; verified in headless Chromium with a synthetic photo; accuracy on real wardrobe photos not yet measured. Reload-safe since 2026-11-03: the batch is kept on disk and resumes (`smoke-resume.py`) |
 | M3 Wardrobe + item detail | built |
 | M4 Today + check-in (weather bands, occasions, engine, swap, shuffle, lock, "I wore this") | built; engine covered by 50 tests incl. a 90-day fairness simulation |
 | M4b Day model v2 (owner's request, 2026-11-03): any number of outfits per day with their own hours, "right now", plan 1–14 days, weekday defaults optional | built; see **Days and outfits** |
@@ -42,6 +42,7 @@ npm run embeddings     # regenerate public/rules/prompt-embeddings.json after ed
 python3 scripts/screenshots.py http://127.0.0.1:4173/grooming-flow/ shots/   # phone-width screenshots, light + dark (empty wardrobe)
 python3 scripts/make-fixture-backup.py fixture.zip && python3 scripts/tour.py http://127.0.0.1:4173/grooming-flow/ fixture.zip tour/   # restores a labelled fixture wardrobe through Settings, walks the day model (second outfit, right now, check-in, plan 3 days, tomorrow, history)
 python3 scripts/smoke-add.py http://127.0.0.1:5173/grooming-flow/ photo.jpg out/   # end-to-end: onboarding → location → photo → classify → confirm → Today
+python3 scripts/smoke-resume.py http://127.0.0.1:4173/grooming-flow/ photos/ out/   # reload survival: pick photos, reload mid-batch, cards come back, pipeline finishes, confirm
 ```
 
 Deploy today: build with `BASE_PATH=/grooming-flow/`, push `dist/` to the `gh-pages` branch (Pages source). Once the `gh` token has the `workflow` scope, push `.github/workflows/deploy.yml` and switch Pages to GitHub Actions; the repository variable `BASE_PATH` is already set.
@@ -84,6 +85,7 @@ Final rank = 0.40 style + 0.35 rotation + 0.15 recency + 0.10 user signals + sma
 
 ## Decisions and deviations from the brief
 
+- **Nothing reloads the page by itself, and a reload loses nothing.** The service worker runs in `prompt` mode: a new build shows a banner ("A new version is ready · Reload") and waits, never while photos are processed; the first deploys used `autoUpdate`, whose automatic reload threw away a photo batch the owner was adding. Pull-to-refresh is disabled (`overscroll-behavior-y: none`). The add queue lives in IndexedDB (`intake`) from the moment a photo is picked until its card is confirmed or discarded, so a crash, the camera on iPhone or any reload brings the same cards back ("Resumed n photos from before") and processing continues (`scripts/smoke-resume.py` proves it).
 - The brief's "one outfit a day" became "any number of moments per day" on the owner's request (2026-11-03): today only, a second outfit for the evening, right now, or a plan of several days; the weekday defaults became optional. Items worn earlier the same day count as worn yesterday for the cooldown, and counters move once per day.
 - Shoes split into *sneakers* and *athletic*; watch split into *dress / sport / smartwatch*; *necklace* added: the deck's rules need them (`s098`, `s040`, `s046`).
 - Warmth is judged on the outfit, not per item: per item only the extremes go (nothing heavier than band + 1, no summer pieces from the cool band on, no light coat in the cold); the outfit's insulation (heaviest top layer + half a step per extra layer) must sit within ±2 of the band's warmth and scores best when closest. A literal "every item within band ± 1" leaves a cold day with no shirt and no trousers.

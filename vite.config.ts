@@ -34,13 +34,16 @@ export default defineConfig({
     react(),
     tailwindcss(),
     VitePWA({
-      registerType: 'autoUpdate',
+      // 'prompt', never 'autoUpdate': an automatic reload when a new deploy
+      // lands would throw away a photo batch in progress. The app shows a
+      // banner and reloads only when the user taps it.
+      registerType: 'prompt',
       includeAssets: ['icons/*.png', 'icons/*.svg'],
       manifest: {
         id: `${base}app/`,
         name: 'Grooming Flow',
         short_name: 'Grooming Flow',
-        description: 'Your wardrobe, one outfit a day.',
+        description: 'Your wardrobe, an outfit for every moment of the day.',
         start_url: `${base}app/`,
         scope: base,
         display: 'standalone',

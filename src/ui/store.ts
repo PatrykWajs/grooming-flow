@@ -18,6 +18,9 @@ interface AppState {
   setModelProgress: (p: ProgressMessage) => void
   backend: 'webgpu' | 'wasm' | null
   setBackend: (b: 'webgpu' | 'wasm') => void
+  /** Photos are being processed: the update banner waits. */
+  addBusy: boolean
+  setAddBusy: (b: boolean) => void
 }
 
 let toastSeq = 0
@@ -37,4 +40,6 @@ export const useAppStore = create<AppState>((set) => ({
     set((s) => ({ modelProgress: { ...s.modelProgress, [`${p.model}/${p.file}`]: { loaded: p.loaded, total: p.total, status: p.status } } })),
   backend: null,
   setBackend: (backend) => set({ backend }),
+  addBusy: false,
+  setAddBusy: (addBusy) => set({ addBusy }),
 }))

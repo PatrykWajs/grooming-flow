@@ -1,5 +1,5 @@
 {
-  "app": { "name": "Grooming Flow", "tagline": "Your wardrobe, an outfit for every moment of the day." },
+  "app": { "name": "Grooming Flow", "tagline": "Your wardrobe, an outfit for every moment of the day.", "updateReady": "A new version is ready.", "updateNow": "Reload" },
   "nav": { "main": "Main", "today": "Today", "plan": "Plan", "wardrobe": "Wardrobe", "history": "History", "settings": "Settings" },
   "common": {
     "yes": "yes", "no": "no", "unknown": "unknown", "cancel": "Cancel", "save": "Save", "delete": "Delete", "back": "Back", "close": "Close",
@@ -118,6 +118,9 @@
     "saved_one": "{{count}} item added",
     "saved_other": "{{count}} items added",
     "limit": "Up to 50 photos at a time",
+    "restored_one": "Resumed {{count}} photo from before",
+    "restored_other": "Resumed {{count}} photos from before",
+    "resumeHint": "The batch is kept on this phone until you confirm or discard each card, even if the app reloads.",
     "fields": { "category": "Category", "subcategory": "Type", "colour": "Colour", "colour2": "Second colour", "pattern": "Pattern", "material": "Material", "warmth": "Warmth", "formality": "Formality", "brand": "Brand", "notes": "Notes", "none": "none" },
     "warmth": { "1": "summer", "2": "light", "3": "mid", "4": "warm", "5": "deep winter" },
     "formality": { "1": "athletic", "2": "casual", "3": "smart casual", "4": "business", "5": "formal" },

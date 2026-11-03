@@ -6,28 +6,19 @@
 import { aiClient } from '../ai/client'
 import { decodeImage, dominantColours, draw, encode, fit, hammingDistance, perceptualHash, type ColourResult, THUMB_EDGE } from '../ai/image'
 import type { Prediction } from '../ai/protocol'
-import { db, newId, type ItemRecord } from '../data/db'
+import { db, newId, type IntakeRecord, type ItemFields, type ItemRecord } from '../data/db'
 import { buildItem, type NewItemInput } from '../data/items'
 import type { EngineData } from '../engine/recommend'
 import { defaultsFor, findSubcategory } from '../engine/taxonomy'
 import type { CategoryId, Material, Pattern } from '../engine/types'
 
-export interface EditableFields {
-  category: CategoryId
-  subcategory: string
-  colourPrimary: string
-  colourSecondary: string | null
-  pattern: Pattern
-  material: Material
-  warmth: number
-  formality: number
-  brand: string
-  notes: string
-}
+export type EditableFields = ItemFields
 
 export interface ReviewCard {
   id: string
-  file: File
+  /** The picked photo (a File, or the blob restored from the queue on disk). */
+  source: Blob
+  name: string
   status: 'queued' | 'processing' | 'ready' | 'error' | 'saved' | 'discarded'
   error?: string
   photo?: Blob
@@ -44,7 +35,45 @@ export interface ReviewCard {
 }
 
 export function newCard(file: File): ReviewCard {
-  return { id: newId(), file, status: 'queued', userEdited: new Set() }
+  return { id: newId(), source: file, name: file.name, status: 'queued', userEdited: new Set() }
+}
+
+/** A card rebuilt from the queue on disk after a reload (the thumbnail URL is the screen's job). */
+export function cardFromIntake(record: IntakeRecord, existing: ItemRecord[]): ReviewCard {
+  const base: ReviewCard = { id: record.id, source: record.source ?? new Blob(), name: record.name, status: 'queued', userEdited: new Set(record.userEdited) }
+  if (record.status === 'error') return { ...base, status: 'error', error: record.error ?? 'error' }
+  if (record.status === 'ready' && record.fields && record.photo && record.thumb) {
+    return {
+      ...base,
+      status: 'ready',
+      photo: record.photo,
+      thumb: record.thumb,
+      prediction: record.prediction ?? undefined,
+      colour: record.colour ?? undefined,
+      phash: record.phash ?? undefined,
+      embedding: record.embedding ?? undefined,
+      fields: record.fields,
+      duplicateOf: record.duplicateOfId ? (existing.find((i) => i.id === record.duplicateOfId) ?? null) : null,
+    }
+  }
+  return base
+}
+
+/** What the queue on disk keeps of a processed card. */
+export function intakeResult(card: ReviewCard): Partial<IntakeRecord> & { status: IntakeRecord['status'] } {
+  return {
+    status: card.status === 'ready' ? 'ready' : 'error',
+    photo: card.photo ?? null,
+    thumb: card.thumb ?? null,
+    prediction: card.prediction ?? null,
+    colour: card.colour ?? null,
+    phash: card.phash ?? null,
+    embedding: card.embedding ?? null,
+    fields: card.fields ?? null,
+    userEdited: [...card.userEdited],
+    duplicateOfId: card.duplicateOf?.id ?? null,
+    error: card.error ?? null,
+  }
 }
 
 export const MAX_BATCH = 50
@@ -98,7 +127,7 @@ export async function processCard(card: ReviewCard, data: EngineData, existing: 
   taxonomyRef = data.taxonomy
   const next: ReviewCard = { ...card, status: 'processing' }
   try {
-    const bitmap = await decodeImage(card.file)
+    const bitmap = await decodeImage(card.source)
     const [w, h] = fit(bitmap.width, bitmap.height, 1280)
     const canvas = draw(bitmap, w, h)
     bitmap.close()

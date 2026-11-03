@@ -1,9 +1,15 @@
 import Dexie, { type EntityTable } from 'dexie'
+import type { ColourResult } from '../ai/image'
+import type { Prediction } from '../ai/protocol'
 import type { CategoryId, HourlyWeather, ItemStatus, Material, Pattern, Season, WeatherWindow } from '../engine/types'
 
 export const DB_NAME = 'groomingflow-db'
-/** v1: one day plan per date. v2: moments (any number of outfits per day, each with its own occasion and hours). v3: the old table dropped. */
-export const SCHEMA_VERSION = 3
+/**
+ * v1: one day plan per date. v2: moments (any number of outfits per day, each
+ * with its own occasion and hours). v3: the old table dropped. v4: intake
+ * (the add queue, so a reload never loses a photo batch).
+ */
+export const SCHEMA_VERSION = 4
 
 export interface ItemRecord {
   id: string
@@ -34,6 +40,44 @@ export interface ItemRecord {
   eligibleDays: number
   wearsSinceWash: number
   wearMore: number
+}
+
+/** The fields the user reviews on a card before an item is saved. */
+export interface ItemFields {
+  category: CategoryId
+  subcategory: string
+  colourPrimary: string
+  colourSecondary: string | null
+  pattern: Pattern
+  material: Material
+  warmth: number
+  formality: number
+  brand: string
+  notes: string
+}
+
+/**
+ * A photo in the add pipeline, kept from the moment it is picked until the
+ * user confirms or discards it, so a reload (a crash, the camera on iPhone, a
+ * pull-to-refresh) resumes where it left off instead of losing the batch.
+ */
+export interface IntakeRecord {
+  id: string
+  createdAt: string
+  status: 'queued' | 'ready' | 'error'
+  /** The picked file until it is processed, then null (the cutout replaces it). */
+  source: Blob | null
+  name: string
+  photo: Blob | null
+  thumb: Blob | null
+  prediction: Prediction | null
+  colour: ColourResult | null
+  phash: string | null
+  embedding: number[] | null
+  fields: ItemFields | null
+  userEdited: string[]
+  duplicateOfId: string | null
+  error: string | null
 }
 
 export type OutfitSource = 'today' | 'plan' | 'manual' | 'archive'
@@ -207,6 +251,7 @@ export class GroomingDB extends Dexie {
   preferences!: EntityTable<PreferenceRecord, 'id'>
   blobs!: EntityTable<BlobRecord, 'id'>
   weather!: EntityTable<WeatherCacheRecord, 'key'>
+  intake!: EntityTable<IntakeRecord, 'id'>
 
   constructor(name = DB_NAME) {
     super(name)
@@ -229,7 +274,8 @@ export class GroomingDB extends Dexie {
         const plans = (await tx.table('dayPlans').toArray()) as LegacyDayPlanRecord[]
         if (plans.length) await tx.table('moments').bulkAdd(plans.map(momentFromDayPlan))
       })
-    this.version(SCHEMA_VERSION).stores({ dayPlans: null })
+    this.version(3).stores({ dayPlans: null })
+    this.version(SCHEMA_VERSION).stores({ intake: 'id, status, createdAt' })
   }
 }
 

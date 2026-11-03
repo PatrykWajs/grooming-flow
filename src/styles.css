@@ -12,6 +12,12 @@
 
 /* Design tokens. Light: warm off-white paper, charcoal ink, olive accent.
    Dark: the paper inverts to charcoal, the accent lightens for contrast. */
+/* No pull-to-refresh: a reload in the middle of a photo batch loses the queue. */
+html,
+body {
+  overscroll-behavior-y: none;
+}
+
 :root {
   color-scheme: light dark;
   --bg: #f4f0e8;
