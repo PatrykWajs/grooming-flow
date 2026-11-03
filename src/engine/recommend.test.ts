@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 import { emptySignals, makeContext } from './context'
 import { makeDay, makeFixtureWardrobe } from './fixtures'
-import { isEligible, recommend } from './recommend'
+import { isEligible, outfitInsulation, recommend } from './recommend'
 import { loadEngineData } from './testing/loadData'
 import { summariseWindow, windowHours } from './weather'
 
@@ -100,6 +100,26 @@ describe('recommend', () => {
     }
     const home = recommend(makeContext('2026-10-05', wardrobe, windowFor('2026-10-05', { low: 14, high: 22 }, 'home'), occasion('home')), data)
     expect(home.outfits[0].slots.outer).toBeUndefined()
+  })
+
+  it('layers for the cold: a coat on top and enough insulation, and nothing heavy in the heat', () => {
+    const cold = windowFor('2026-12-10', { low: 2, high: 9 }, 'office')
+    expect(cold.band).toBe('cold')
+    const result = recommend(makeContext('2026-12-10', wardrobe, cold, occasion('office')), data)
+    expect(result.outfits.length).toBeGreaterThan(0)
+    for (const o of result.outfits) {
+      const items = o.itemIds.map((id) => wardrobe.find((i) => i.id === id)!)
+      expect(items.some((i) => i.role === 'outer')).toBe(true)
+      expect(outfitInsulation(items)).toBeGreaterThanOrEqual(3)
+    }
+    const hot = windowFor('2026-07-20', { low: 26, high: 34, uv: 8 }, 'casual')
+    expect(hot.band).toBe('hot')
+    const summer = recommend(makeContext('2026-07-20', wardrobe, hot, occasion('casual')), data)
+    expect(summer.outfits.length).toBeGreaterThan(0)
+    for (const o of summer.outfits) {
+      const items = o.itemIds.map((id) => wardrobe.find((i) => i.id === id)!)
+      expect(outfitInsulation(items)).toBeLessThanOrEqual(3)
+    }
   })
 
   it('returns no outfit, with the missing slots, when a core slot cannot be filled', () => {

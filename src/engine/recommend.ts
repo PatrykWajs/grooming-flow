@@ -106,11 +106,21 @@ export function isEligible(
 ): boolean {
   if (item.status !== 'active') return false
   if (!template.some((slot) => slotAccepts(slot, item))) return false
-  const [minWarmth, maxWarmth] = allowedWarmth(weather.band, data.weatherRules, weather.flags)
+  const [, maxWarmth] = allowedWarmth(weather.band, data.weatherRules, weather.flags)
   const heatwave = weather.band === 'heatwave'
   const noWarmthCheck = item.role === 'belt' || item.role === 'accessory'
   if (!noWarmthCheck) {
-    if (heatwave ? item.warmth > 1 : item.warmth < minWarmth || item.warmth > maxWarmth) return false
+    // Per item only the extremes are excluded (a shirt is worn under a knit
+    // and a coat in January); the outfit's insulation is checked as a whole,
+    // see outfitInsulation().
+    const bandWarmth = data.weatherRules.bandWarmth[weather.band]
+    if (heatwave) {
+      if (item.warmth > (item.role === 'bottoms' || item.role === 'shoes' ? 2 : 1)) return false
+    } else {
+      if (item.warmth > maxWarmth) return false
+      if (item.warmth === 1 && bandWarmth >= 4) return false
+      if (item.role === 'outer' && item.warmth < bandWarmth - 2) return false
+    }
   }
   const formality = effectiveFormality(item, data.rules, data.palette)
   const [fMin, fMax] = occasion.formality
@@ -143,6 +153,16 @@ export function isEligible(
     if (rule.type === 'occasion' && matches(rule.a, item, data.palette) && !rule.allowed.includes(occasion.id)) return false
   }
   return true
+}
+
+/**
+ * How warm an outfit dresses: the heaviest top layer plus half a step per
+ * extra layer. Compared with the band's warmth (1 summer .. 5 deep winter).
+ */
+export function outfitInsulation(items: EngineItem[]): number {
+  const layers = items.filter((i) => i.role === 'base' || i.role === 'layer' || i.role === 'outer')
+  if (layers.length === 0) return 0
+  return Math.max(...layers.map((i) => i.warmth)) + 0.5 * (layers.length - 1)
 }
 
 function weatherSoft(item: EngineItem, weather: WeatherWindow, occasion: Occasion, data: EngineData): number {
@@ -266,6 +286,9 @@ function scoreState(items: EngineItem[], candidates: Map<string, Candidate>, ctx
   const [fMin, fMax] = ctx.occasion.formality
   const distance = f < fMin ? fMin - f : f > fMax ? f - fMax : 0
   total -= 0.3 * distance
+  // Dress for the band: the closer the outfit's insulation to the band's warmth, the better.
+  const gap = Math.abs(outfitInsulation(items) - data.weatherRules.bandWarmth[ctx.weather.band])
+  total += Math.max(-0.1, 0.1 - 0.05 * gap)
   return { style, rotation, recency, signals, weather, total }
 }
 
@@ -297,7 +320,8 @@ export function recommend(ctx: RecommendContext, data: EngineData, options: Reco
   for (const slot of template) {
     const restricted = (slot.id === 'outer' && !slot.accept.includes('outer')) || (slot.id === 'shoes' && !slot.accept.includes('shoes'))
     if (!restricted) continue
-    const anyFits = ctx.items.some((i) => i.status === 'active' && !signals.excluded.has(i.id) && slotAccepts(slot, i))
+    // Widen a rain-restricted slot when no eligible item can fill it (e.g. every boot is suede).
+    const anyFits = ctx.items.some((i) => !signals.excluded.has(i.id) && slotAccepts(slot, i) && isEligible(i, weather, occasion, settings, data, template))
     if (anyFits) continue
     slot.accept = [slot.id]
     relaxed.push({ key: slot.id === 'outer' ? 'reason.noWaterproofOuter' : 'reason.noWaterproofShoes' })
@@ -381,6 +405,9 @@ export function recommend(ctx: RecommendContext, data: EngineData, options: Reco
     }
     const f = meanFormality(state.items, data)
     if (f < fMin - tolerance || f > fMax + tolerance) return false
+    const insulation = outfitInsulation(state.items)
+    const bandWarmth = data.weatherRules.bandWarmth[weather.band]
+    if (insulation < bandWarmth - 2 || insulation > bandWarmth + 2) return false
     const ids = state.items.map((i) => i.id)
     if (ctx.recentOutfits.some((past) => sameOutfit(past, ids))) return false
     return true

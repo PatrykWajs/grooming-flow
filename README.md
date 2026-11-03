@@ -73,6 +73,7 @@ Final rank = 0.40 style + 0.35 rotation + 0.15 recency + 0.10 user signals + sma
 ## Decisions and deviations from the brief
 
 - Shoes split into *sneakers* and *athletic*; watch split into *dress / sport / smartwatch*; *necklace* added: the deck's rules need them (`s098`, `s040`, `s046`).
+- Warmth is judged on the outfit, not per item: per item only the extremes go (nothing heavier than band + 1, no summer pieces from the cool band on, no light coat in the cold); the outfit's insulation (heaviest top layer + half a step per extra layer) must sit within ±2 of the band's warmth and scores best when closest. A literal "every item within band ± 1" leaves a cold day with no shirt and no trousers.
 - Fairness peers are items eligible the same day for the same slot, not the whole category: a sweater is not measured against t-shirts, a summer shirt not against winter ones (the brief's own "over the days it was eligible").
 - Background removal uses RMBG-1.4 through the same Transformers.js runtime instead of `@imgly/background-removal` (one runtime, one cache, no AGPL on the app; the model licence is non-commercial, consistent with Open-Meteo's terms and the app's hard constraints).
 - The ONNX runtime's WASM files load from the library's versioned CDN (jsDelivr) and are cached offline; self-hosting added 60 MB to every deploy.
