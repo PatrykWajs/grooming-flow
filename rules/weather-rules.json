@@ -1,0 +1,40 @@
+{
+  "version": 1,
+  "description": "Weather bands on the feels-like (apparent) temperature over the occasion's window, Greek-climate defaults, shifted by the user's runs-hot/cold offset (-3..+3 C). Flags are computed over the same window. Hard effects filter items; soft effects are score modifiers (added to the candidate's weather score before the weighted sum).",
+  "bands": [
+    { "id": "heatwave", "min": 35, "en": "heatwave", "el": "καύσωνας" },
+    { "id": "hot", "min": 29, "max": 35, "en": "hot", "el": "ζέστη" },
+    { "id": "warm", "min": 23, "max": 29, "en": "warm", "el": "ζεστά" },
+    { "id": "mild", "min": 17, "max": 23, "en": "mild", "el": "ήπια" },
+    { "id": "cool", "min": 11, "max": 17, "en": "cool", "el": "δροσιά" },
+    { "id": "cold", "max": 11, "en": "cold", "el": "κρύο" }
+  ],
+  "bandWarmth": { "heatwave": 1, "hot": 1, "warm": 2, "mild": 3, "cool": 4, "cold": 5 },
+  "warmthTolerance": 1,
+  "flags": {
+    "rain": { "probabilityMin": 40, "amountMmMin": 1 },
+    "humidity": { "min": 70, "bands": ["warm", "hot", "heatwave"] },
+    "sun": { "uvMin": 6, "sunshineHoursMin": 6 },
+    "wind": { "kmhMin": 30 },
+    "overcast": { "cloudMin": 80 },
+    "spread": { "degMin": 10 }
+  },
+  "sets": {
+    "waterResistantOuter": ["trench", "parka", "puffer", "field-jacket"],
+    "windproofOuter": ["trench", "parka", "puffer", "field-jacket", "leather-jacket", "bomber", "overcoat"],
+    "removableLayer": ["overshirt", "cardigan", "denim-jacket", "bomber", "field-jacket", "vest"],
+    "boots": ["chelsea-boots", "chukka-boots", "work-boots"],
+    "loose": ["shorts", "espadrilles", "sandals"],
+    "hats": ["cap", "hat"]
+  },
+  "effects": {
+    "heatwave": { "hard": { "maxWarmth": 1, "noLayer": true, "noOuter": true }, "soft": { "lightColours": 0.2, "materials": { "linen": 0.2, "cotton": 0.1 }, "sunglasses": true } },
+    "rain": { "hard": { "excludeMaterials": ["suede", "canvas"], "excludeSubcategories": ["espadrilles"], "excludeLightBottoms": true, "requireWaterResistantOuterInBands": ["cool", "cold"] }, "soft": { "boots": 0.15, "darkBottoms": 0.1 } },
+    "humidity": { "soft": { "materials": { "linen": 0.15, "cotton": 0.1, "knit": 0.05, "synthetic": -0.15, "leather": -0.15 }, "extraLayer": -0.1 } },
+    "sun": { "soft": { "sunglasses": true, "hats": 0.1, "blackTopsInHot": -0.15 } },
+    "wind": { "soft": { "windproof": 0.15, "loose": -0.15, "linenShirt": -0.1 } },
+    "overcast": { "soft": { "warmthAllowance": 0.5, "sunglasses": false } },
+    "spread": { "soft": { "removableLayer": 0.15 } },
+    "coldRain": { "hard": { "waterproofShoes": true, "requireOuter": ["overcoat", "parka", "trench"] } }
+  }
+}

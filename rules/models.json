@@ -1,0 +1,20 @@
+{
+  "version": 1,
+  "description": "On-device models, fetched from the Hugging Face Hub at first run and cached by the browser. dtype is chosen per backend: WebGPU takes the fp16/q4f16 files, WASM the 8-bit ones. Licences: marqo-fashionSigLIP Apache-2.0; RMBG-1.4 bria-rmbg-1.4 (non-commercial use; the app is non-commercial by its hard constraints).",
+  "classifier": {
+    "id": "Marqo/marqo-fashionSigLIP",
+    "dtype": { "webgpu": "q4f16", "wasm": "q8" },
+    "approxMB": { "webgpu": 54, "wasm": 94 },
+    "promptEmbeddings": "rules/prompt-embeddings.json"
+  },
+  "bgRemoval": {
+    "id": "briaai/RMBG-1.4",
+    "dtype": { "webgpu": "fp16", "wasm": "q8" },
+    "approxMB": { "webgpu": 88, "wasm": 44 },
+    "size": 1024
+  },
+  "fallbackClassifier": {
+    "id": "Xenova/clip-vit-base-patch32",
+    "dtype": { "webgpu": "fp16", "wasm": "q8" }
+  }
+}

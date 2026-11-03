@@ -1,0 +1,42 @@
+{
+  "version": 1,
+  "description": "The 24 colours every item is mapped to. `l` is approximate CIELAB lightness (0-100), used by the light-on-top rule and by the palette mapper. Families group colours for the style rules; `leather` maps shoe and belt colours to the two leather families the deck recognises (black, brown).",
+  "families": {
+    "neutral": ["white", "cream", "beige", "light-grey", "grey", "charcoal", "black"],
+    "earth": ["tan", "brown", "dark-brown", "olive", "dark-green", "burgundy"],
+    "blue": ["light-blue", "blue", "navy", "denim", "teal"],
+    "bright": ["red", "orange", "yellow", "green", "purple", "pink"]
+  },
+  "light": ["white", "cream", "beige", "light-grey", "light-blue", "pink", "yellow"],
+  "dark": ["black", "charcoal", "navy", "dark-brown", "dark-green", "burgundy"],
+  "leather": {
+    "black": ["black", "charcoal"],
+    "brown": ["brown", "dark-brown", "tan", "burgundy", "beige"]
+  },
+  "colours": [
+    { "id": "white", "hex": "#F5F5F2", "l": 96, "en": "white", "el": "λευκό" },
+    { "id": "cream", "hex": "#F1E9D6", "l": 92, "en": "cream", "el": "εκρού" },
+    { "id": "beige", "hex": "#D8C8A8", "l": 80, "en": "beige", "el": "μπεζ" },
+    { "id": "tan", "hex": "#C19A6B", "l": 65, "en": "tan / camel", "el": "ταμπά / καμηλό" },
+    { "id": "brown", "hex": "#7B4F2E", "l": 40, "en": "brown", "el": "καφέ" },
+    { "id": "dark-brown", "hex": "#4A2E1C", "l": 28, "en": "dark brown", "el": "σκούρο καφέ" },
+    { "id": "burgundy", "hex": "#6D1F2C", "l": 30, "en": "burgundy", "el": "μπορντό" },
+    { "id": "red", "hex": "#C0392B", "l": 50, "en": "red", "el": "κόκκινο" },
+    { "id": "orange", "hex": "#D9772B", "l": 62, "en": "orange / rust", "el": "πορτοκαλί" },
+    { "id": "yellow", "hex": "#E3C04B", "l": 85, "en": "yellow / mustard", "el": "κίτρινο" },
+    { "id": "olive", "hex": "#6B6B3A", "l": 45, "en": "olive", "el": "λαδί" },
+    { "id": "green", "hex": "#3F8F4E", "l": 50, "en": "green", "el": "πράσινο" },
+    { "id": "dark-green", "hex": "#1F4D32", "l": 30, "en": "dark green", "el": "σκούρο πράσινο" },
+    { "id": "teal", "hex": "#2A7F7F", "l": 50, "en": "teal", "el": "πετρόλ" },
+    { "id": "light-blue", "hex": "#A9C8E8", "l": 80, "en": "light blue", "el": "γαλάζιο" },
+    { "id": "blue", "hex": "#2F5FB3", "l": 45, "en": "blue", "el": "μπλε" },
+    { "id": "navy", "hex": "#1C2A4A", "l": 22, "en": "navy", "el": "σκούρο μπλε (navy)" },
+    { "id": "denim", "hex": "#4A6B9A", "l": 40, "en": "denim blue", "el": "τζιν" },
+    { "id": "purple", "hex": "#6B4A8C", "l": 40, "en": "purple", "el": "μωβ" },
+    { "id": "pink", "hex": "#E8A7B3", "l": 80, "en": "pink", "el": "ροζ" },
+    { "id": "light-grey", "hex": "#C9C9C9", "l": 80, "en": "light grey", "el": "ανοιχτό γκρι" },
+    { "id": "grey", "hex": "#8C8C8C", "l": 55, "en": "grey", "el": "γκρι" },
+    { "id": "charcoal", "hex": "#3C3C3C", "l": 30, "en": "charcoal", "el": "ανθρακί" },
+    { "id": "black", "hex": "#141414", "l": 10, "en": "black", "el": "μαύρο" }
+  ]
+}
