@@ -4,7 +4,7 @@
  * card the user confirms. Nothing is saved until confirmation.
  */
 import { aiClient } from '../ai/client'
-import { decodeImage, dominantColours, draw, encode, fit, hammingDistance, perceptualHash, type ColourResult, THUMB_EDGE } from '../ai/image'
+import { decodeImage, dominantColours, draw, drawOnWhite, encode, fit, hammingDistance, perceptualHash, type ColourResult, THUMB_EDGE } from '../ai/image'
 import type { Prediction } from '../ai/protocol'
 import { db, newId, type IntakeRecord, type ItemFields, type ItemRecord } from '../data/db'
 import { buildItem, type NewItemInput } from '../data/items'
@@ -134,13 +134,13 @@ export async function processCard(card: ReviewCard, data: EngineData, existing: 
     const workerBitmap = await createImageBitmap(canvas as unknown as ImageBitmapSource)
     const result = await aiClient.classify(card.id, workerBitmap, removeBackground)
 
-    // The display photo is the cutout when the background was removed.
+    // The display photo is the cutout on white when the background was removed; a plain photo is unchanged by the white fill.
     let photoSource: CanvasImageSource = canvas as unknown as CanvasImageSource
     if (result.cutout) {
       const cut = await createImageBitmap(result.cutout)
       photoSource = cut
     }
-    const photoCanvas = draw(photoSource, w, h)
+    const photoCanvas = drawOnWhite(photoSource, w, h)
     const photo = await encode(photoCanvas)
     const [tw, th] = fit(w, h, THUMB_EDGE)
     const thumb = await encode(draw(photoCanvas as unknown as CanvasImageSource, tw, th), 'image/webp', 0.8)

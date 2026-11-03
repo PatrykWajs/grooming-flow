@@ -44,13 +44,13 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
   return <section className={`rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4 ${className}`}>{children}</section>
 }
 
-/** `fill` takes the width of its cell (square); the fixed sizes are for rows and lists. */
+/** `fill` takes the width of its cell (square); the fixed sizes are for rows and lists. Photos always sit on white, in both themes. */
 export function ItemThumb({ item, size = 'md', onClick, badge }: { item: ItemRecord; size?: 'sm' | 'md' | 'lg' | 'fill'; onClick?: () => void; badge?: ReactNode }) {
   const url = useBlobUrl(item.thumbBlobId ?? item.photoBlobId)
   const label = useLabel()
   const sizes = { sm: 'h-16 w-16', md: 'h-24 w-24', lg: 'h-36 w-36', fill: 'aspect-square w-full' }
   const content = (
-    <span className={`relative block ${sizes[size]} overflow-hidden rounded-xl bg-[var(--bg)]`}>
+    <span className={`relative block ${sizes[size]} overflow-hidden rounded-xl bg-white`}>
       {url ? (
         <img src={url} alt={label.itemName(item)} className="h-full w-full object-contain" loading="lazy" decoding="async" />
       ) : (

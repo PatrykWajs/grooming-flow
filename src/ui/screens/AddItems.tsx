@@ -4,12 +4,17 @@ import { aiClient } from '../../ai/client'
 import { applySubcategoryChange, cardFromIntake, intakeResult, MAX_BATCH, newCard, processCard, requestPersistence, saveCard, type EditableFields, type ReviewCard } from '../../app/addItems'
 import { updateSettings } from '../../data/db'
 import { intakeAll, intakeDone, intakeDuplicate, intakeFields, intakeFinish, intakeStart } from '../../data/intake'
-import { Button, Card, Screen } from '../components'
-import { FieldEditor } from '../FieldEditor'
+import { Button, Card, Screen, Sheet } from '../components'
 import { useEngineData, useItems, useLabel, useSettings } from '../hooks'
 import { navigate } from '../router'
 import { useAppStore } from '../store'
+import { TypeColourEditor } from '../TypeColourEditor'
 
+/**
+ * Add clothes: pick photos, every one is queued on disk at once, the worker
+ * names each (type + colour on a white background), the person adds the card
+ * or changes the name. Nothing else to fill in.
+ */
 export function AddItems() {
   const { t } = useTranslation()
   const data = useEngineData()
@@ -23,7 +28,7 @@ export function AddItems() {
   const setBackend = useAppStore((s) => s.setBackend)
   const setAddBusy = useAppStore((s) => s.setAddBusy)
   const [cards, setCards] = useState<ReviewCard[]>([])
-  const [bgRemoval, setBgRemoval] = useState<boolean | null>(null)
+  const [editing, setEditing] = useState<string | null>(null)
   const queueRef = useRef<Promise<void>>(Promise.resolve())
   const restoredRef = useRef(false)
   const pickRef = useRef<HTMLInputElement>(null)
@@ -34,7 +39,7 @@ export function AddItems() {
     void aiClient.ready().then(setBackend)
   }, [setBackend])
 
-  const removeBg = bgRemoval ?? settings?.bgRemoval ?? true
+  const removeBg = settings?.bgRemoval ?? true
 
   const downloading = useMemo(() => {
     const entries = Object.values(progress).filter((p) => p.status === 'download' && p.total > 0)
@@ -51,7 +56,7 @@ export function AddItems() {
 
   /**
    * One photo after another. The card is already in the queue on disk; the
-   * result replaces it there, and the row goes only when the user confirms or
+   * result replaces it there, and the row goes only when the user adds or
    * discards the card.
    */
   function queueProcess(card: ReviewCard) {
@@ -121,9 +126,15 @@ export function AddItems() {
     update(card.id, { status: 'discarded' })
   }
 
-  function edit(card: ReviewCard, patch: Partial<EditableFields>, field: string) {
+  function setType(card: ReviewCard, subcategory: string) {
     if (!data) return
-    const next = field === 'subcategory' && patch.subcategory ? applySubcategoryChange(card, patch.subcategory, data) : { ...card, fields: { ...(card.fields as EditableFields), ...patch }, userEdited: new Set([...card.userEdited, field]) }
+    const next = applySubcategoryChange(card, subcategory, data)
+    update(card.id, () => next)
+    if (next.fields) void intakeFields(card.id, next.fields, [...next.userEdited])
+  }
+
+  function setColour(card: ReviewCard, colourPrimary: string) {
+    const next: ReviewCard = { ...card, fields: { ...(card.fields as EditableFields), colourPrimary }, userEdited: new Set([...card.userEdited, 'colourPrimary']) }
     update(card.id, () => next)
     if (next.fields) void intakeFields(card.id, next.fields, [...next.userEdited])
   }
@@ -132,6 +143,7 @@ export function AddItems() {
   const total = cards.filter((c) => c.status !== 'discarded').length
   const savedCount = cards.filter((c) => c.status === 'saved').length
   const mb = backend && aiClient.models ? aiClient.models.classifier.approxMB[backend] + (removeBg ? aiClient.models.bgRemoval.approxMB[backend] : 0) : 0
+  const editingCard = editing ? cards.find((c) => c.id === editing && c.status === 'ready' && c.fields) : undefined
 
   // While photos are processed the update banner stays away.
   useEffect(() => {
@@ -158,15 +170,6 @@ export function AddItems() {
         </div>
         <input ref={pickRef} type="file" accept="image/*" multiple hidden onChange={(e) => void enqueue(e.target.files)} />
         <input ref={cameraRef} type="file" accept="image/*" capture="environment" hidden onChange={(e) => void enqueue(e.target.files)} />
-        <label className="mt-3 flex min-h-11 items-center gap-2 text-sm">
-          <input type="checkbox" checked={removeBg} onChange={(e) => setBgRemoval(e.target.checked)} className="h-5 w-5 accent-[var(--accent)]" />
-          {t('add.bgRemoval')}
-        </label>
-        <p className="mt-2 text-xs text-[var(--muted)]">
-          {backend ? t('add.backend', { backend: backend === 'webgpu' ? 'WebGPU' : 'WASM' }) : t('common.loading')}
-          {mb > 0 && ` · ${t('add.modelsHint', { mb })}`}
-        </p>
-        <p className="mt-1 text-xs text-[var(--muted)]">{t('add.resumeHint')}</p>
       </Card>
 
       {downloading !== null && (
@@ -175,13 +178,14 @@ export function AddItems() {
           <div className="mt-2 h-2 overflow-hidden rounded-full bg-[var(--line)]">
             <div className="h-full bg-[var(--accent)] transition-[width] duration-300" style={{ width: `${downloading}%` }} />
           </div>
+          {mb > 0 && <p className="mt-2 text-xs text-[var(--muted)]">{t('add.modelsHint', { mb })}</p>}
         </Card>
       )}
 
       {total > 0 && (
-        <div className="mb-3 flex items-center justify-between">
+        <div className="mb-3 flex items-center justify-between gap-3">
           <span className="text-sm text-[var(--muted)]">{pending > 0 ? t('add.processing', { done: total - pending, total }) : t('add.review')}</span>
-          {cards.some((c) => c.status === 'ready') && <Button onClick={() => void confirmAll()}>{t('add.confirmAll')}</Button>}
+          {cards.some((c) => c.status === 'ready' && !c.duplicateOf) && <Button onClick={() => void confirmAll()}>{t('add.confirmAll')}</Button>}
         </div>
       )}
 
@@ -192,7 +196,7 @@ export function AddItems() {
             <li key={card.id}>
               <Card>
                 <div className="flex gap-3">
-                  <div className="h-28 w-28 shrink-0 overflow-hidden rounded-xl bg-[var(--bg)]">
+                  <div className="h-32 w-32 shrink-0 overflow-hidden rounded-xl bg-white">
                     {card.thumbUrl ? <img src={card.thumbUrl} alt="" className="h-full w-full object-contain" /> : <span className="flex h-full items-center justify-center text-xs text-[var(--muted)]">{card.status === 'error' ? '!' : '…'}</span>}
                   </div>
                   <div className="min-w-0 flex-1 text-sm">
@@ -206,18 +210,15 @@ export function AddItems() {
                         </Button>
                       </>
                     )}
-                    {card.status === 'saved' && <p className="font-semibold text-[var(--accent)]">{t('item.saved')}</p>}
+                    {card.status === 'saved' && card.fields && (
+                      <>
+                        <p className="text-base font-semibold">{label.itemName(card.fields)}</p>
+                        <p className="mt-1 text-[var(--accent)]">{t('add.added')}</p>
+                      </>
+                    )}
                     {card.status === 'ready' && card.fields && (
                       <>
-                        <p className="font-semibold">{label.itemName(card.fields)}</p>
-                        {card.prediction && (
-                          <p className="text-xs text-[var(--muted)]">
-                            {card.prediction.subcategory
-                              .slice(0, 3)
-                              .map((s) => `${label.subcategory(s.id)} ${Math.round(s.score * 100)} %`)
-                              .join(' · ')}
-                          </p>
-                        )}
+                        <p className="text-base font-semibold">{label.itemName(card.fields)}</p>
                         {card.duplicateOf && (
                           <div className="mt-2 rounded-xl bg-[var(--bg)] p-2 text-xs">
                             <p>{t('add.duplicate', { name: label.itemName(card.duplicateOf) })}</p>
@@ -238,23 +239,21 @@ export function AddItems() {
                             </div>
                           </div>
                         )}
+                        <div className="mt-3 flex flex-wrap gap-2">
+                          <Button onClick={() => void confirm(card)} disabled={!!card.duplicateOf}>
+                            {t('add.confirm')}
+                          </Button>
+                          <Button tone="secondary" onClick={() => setEditing(card.id)}>
+                            {t('add.change')}
+                          </Button>
+                          <Button tone="ghost" onClick={() => discard(card)}>
+                            {t('add.discard')}
+                          </Button>
+                        </div>
                       </>
                     )}
                   </div>
                 </div>
-                {card.status === 'ready' && card.fields && data && (
-                  <div className="mt-3">
-                    <FieldEditor fields={card.fields} data={data} guessed={new Set(['material', 'pattern'].filter((f) => !card.userEdited.has(f)))} onChange={(patch, field) => edit(card, patch, field)} />
-                    <div className="mt-3 flex gap-2">
-                      <Button onClick={() => void confirm(card)} disabled={!!card.duplicateOf}>
-                        {t('add.confirm')}
-                      </Button>
-                      <Button tone="ghost" onClick={() => discard(card)}>
-                        {t('add.discard')}
-                      </Button>
-                    </div>
-                  </div>
-                )}
               </Card>
             </li>
           ))}
@@ -263,6 +262,19 @@ export function AddItems() {
         <div className="mt-4">
           <Button onClick={() => navigate({ name: 'wardrobe' })}>{t('common.done')}</Button>
         </div>
+      )}
+
+      {data && (
+        <Sheet open={!!editingCard} onClose={() => setEditing(null)} title={editingCard?.fields ? label.itemName(editingCard.fields) : t('add.change')}>
+          {editingCard?.fields && (
+            <>
+              <TypeColourEditor subcategory={editingCard.fields.subcategory} colour={editingCard.fields.colourPrimary} data={data} onType={(sub) => setType(editingCard, sub)} onColour={(c) => setColour(editingCard, c)} />
+              <Button className="mb-2" onClick={() => setEditing(null)}>
+                {t('common.done')}
+              </Button>
+            </>
+          )}
+        </Sheet>
       )}
     </Screen>
   )

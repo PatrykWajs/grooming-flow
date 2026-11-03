@@ -1,35 +1,26 @@
-import { useEffect, useState } from 'react'
+import { useState } from 'react'
 import { useTranslation } from 'react-i18next'
 import { updateSettings } from '../../data/db'
 import { Button, Card } from '../components'
 import { useSettings } from '../hooks'
 import { navigate } from '../router'
-import { LocationPicker, WeekdayDefaults } from './Settings'
+import { LocationPicker } from './Settings'
 
 function isStandalone(): boolean {
   return window.matchMedia('(display-mode: standalone)').matches || (navigator as Navigator & { standalone?: boolean }).standalone === true
 }
 
+/** Three screens: install, where you are (for the forecast), add your first clothes. */
 export function Onboarding() {
   const { t } = useTranslation()
   const settings = useSettings()
   const [step, setStep] = useState(() => (isStandalone() ? 1 : 0))
-
-  useEffect(() => {
-    document.documentElement.lang = t('app.name') ? document.documentElement.lang : 'el'
-  }, [t])
 
   if (!settings) return null
 
   async function finish() {
     await updateSettings({ onboarded: true })
     navigate({ name: 'add' })
-  }
-
-  /** No weekday defaults: every day asks what it is for. */
-  async function dayByDay() {
-    await updateSettings({ weekdayDefaults: { '0': '', '1': '', '2': '', '3': '', '4': '', '5': '', '6': '' } })
-    setStep(3)
   }
 
   const steps = [
@@ -48,19 +39,6 @@ export function Onboarding() {
     {
       title: t('onboarding.step2.title'),
       body: t('onboarding.step2.body'),
-      content: (
-        <>
-          <WeekdayDefaults settings={settings} />
-          <Button tone="ghost" className="mt-3" onClick={() => void dayByDay()}>
-            {t('onboarding.step2.dayByDay')}
-          </Button>
-        </>
-      ),
-      next: t('common.next'),
-    },
-    {
-      title: t('onboarding.step3.title'),
-      body: t('onboarding.step3.body'),
       content: null,
       next: t('onboarding.start'),
     },

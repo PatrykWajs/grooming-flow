@@ -43,6 +43,16 @@ export function draw(source: CanvasImageSource, width: number, height: number): 
   return canvas
 }
 
+/** Draws onto an opaque white canvas: a cutout keeps a white background in every theme and in every export. */
+export function drawOnWhite(source: CanvasImageSource, width: number, height: number): OffscreenCanvas | HTMLCanvasElement {
+  const canvas = makeCanvas(width, height)
+  const ctx = canvas.getContext('2d') as OffscreenCanvasRenderingContext2D | CanvasRenderingContext2D
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, width, height)
+  ctx.drawImage(source, 0, 0, width, height)
+  return canvas
+}
+
 export async function encode(canvas: OffscreenCanvas | HTMLCanvasElement, type = 'image/webp', quality = WEBP_QUALITY): Promise<Blob> {
   if ('convertToBlob' in canvas) {
     const blob = await canvas.convertToBlob({ type, quality })

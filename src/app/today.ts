@@ -1,8 +1,8 @@
 /**
- * Day glue: the moments of a day (stored, or the weekday default as a virtual
- * one), the forecast over each moment's hours, the engine's suggestions, and
- * the actions: add, change or remove a moment, keep an outfit, "I wore this",
- * dress for right now, plan several days ahead.
+ * Day glue: the moments of a day (every "where are you going?" answer), the
+ * forecast over each moment's hours, the engine's suggestions, and the
+ * actions: add or remove a moment, "I'll wear this", swap one piece, plan
+ * the next days.
  */
 import { confirmMoment, createMoment, deleteMoment, momentsBetween, momentsOn, saveOutfit, shiftDate, unconfirmMoment, updateMoment, wearContext, type CheckinSettings } from '../data/checkin'
 import { db, getSettings, newId, nowIso, today as todayDate, updateSettings, type ItemRecord, type MomentRecord, type OutfitRecord, type PreferenceRecord, type SettingsRecord } from '../data/db'
@@ -16,17 +16,14 @@ import { bandFor, estimatedWindow, summariseWindow, windowHours } from '../engin
 import { getForecast, type ForecastResult } from '../weather/forecast'
 import { openMeteo } from '../weather/openMeteo'
 
-/** Open-Meteo gives 16 days; the strip and the planner stop at 14. */
+/** Open-Meteo gives 16 days; the planner stops at 14. */
 export const PLAN_MAX_DAYS = 14
-/** Key of the weekday-default moment before it is written. */
-export const VIRTUAL = 'virtual'
-/** Hours a "right now" outfit covers when the occasion's own window has passed. */
+/** Hours an outfit covers when the occasion's own window has already passed. */
 export const NOW_HOURS = 4
 
 export interface MomentView {
-  /** The stored id, or `VIRTUAL` for the weekday default not yet written. */
+  /** The stored id. */
   key: string
-  stored: boolean
   moment: MomentRecord
   /** The occasion with its window resolved to this moment's hours. */
   occasion: Occasion
@@ -46,7 +43,6 @@ export interface DayModel {
   itemsById: Map<string, ItemRecord>
   forecast: ForecastResult | null
   moments: MomentView[]
-  defaultOccasionId: string | null
 }
 
 export interface DayOverrides {
@@ -71,13 +67,6 @@ export function momentOccasion(data: EngineData, settings: SettingsRecord, momen
   return { ...base, window: resolveWindow(moment, base) }
 }
 
-/** The weekday default, or null when the user decides on the day. */
-export function defaultOccasionId(settings: SettingsRecord, date: string): string | null {
-  const dow = String(new Date(`${date}T12:00:00`).getDay())
-  const id = settings.weekdayDefaults[dow]
-  return id ? id : null
-}
-
 export function toMinutes(hhmm: string): number {
   const [h, m] = hhmm.split(':').map(Number)
   return (h || 0) * 60 + (m || 0)
@@ -89,17 +78,21 @@ export function toHHMM(minutes: number): string {
 }
 
 /**
- * The hours a "right now" outfit is for: from the current hour to the end of
- * the occasion's window when we are inside it, otherwise four hours.
+ * The hours an outfit for today covers, from the answer to "where are you
+ * going?": the occasion's own window while it has not started, from the
+ * current hour to its end while we are inside it, and four hours from now
+ * once it has passed.
  */
-export function nowWindow(occasion: Occasion, now: Date = new Date()): [string, string] {
-  const start = now.getHours() * 60
+export function windowForToday(occasion: Occasion, now: Date = new Date()): [string, string] {
+  const minute = now.getHours() * 60 + now.getMinutes()
+  const hour = now.getHours() * 60
   const occStart = toMinutes(occasion.window[0])
   let occEnd = toMinutes(occasion.window[1])
   if (occEnd <= occStart) occEnd += 1440
-  const inside = (start >= occStart && start < occEnd) || (start + 1440 >= occStart && start + 1440 < occEnd)
-  const end = inside ? occEnd : start + NOW_HOURS * 60
-  return [toHHMM(start), toHHMM(end)]
+  const inside = (minute >= occStart && minute < occEnd) || (minute + 1440 >= occStart && minute + 1440 < occEnd)
+  if (inside) return [toHHMM(hour), toHHMM(occEnd)]
+  if (minute < occStart) return occasion.window
+  return [toHHMM(hour), toHHMM(hour + NOW_HOURS * 60)]
 }
 
 export function sameIds(a: string[], b: string[]): boolean {
@@ -157,26 +150,6 @@ function signalsFrom(prefs: PreferenceRecord[], moment: MomentRecord, overrides:
   return signals
 }
 
-function virtualMoment(date: string, occasionId: string): MomentRecord {
-  return {
-    id: '',
-    date,
-    occasionId,
-    start: null,
-    end: null,
-    createdAt: '',
-    createdBy: 'user',
-    weatherSnapshot: null,
-    plannedOutfitId: null,
-    confirmedOutfitId: null,
-    lockedItemIds: [],
-    rating: null,
-    note: '',
-    confirmedAt: null,
-    eligibleItemIds: [],
-  }
-}
-
 export function sortMoments<T extends Pick<MomentRecord, 'occasionId' | 'start' | 'end' | 'createdAt'>>(moments: T[], data: EngineData, settings: SettingsRecord): T[] {
   return [...moments].sort((a, b) => {
     const sa = toMinutes(momentOccasion(data, settings, a).window[0])
@@ -199,15 +172,13 @@ export function toProposal(record: OutfitRecord): OutfitProposal {
 export async function loadDay(date: string, overrides: DayOverrides = {}): Promise<DayModel> {
   const [settings, data, items, stored, prefs] = await Promise.all([getSettings(), loadEngineData(), db.items.toArray(), momentsOn(date), db.preferences.toArray()])
   const forecast = await forecastFor(settings)
-  const defaultId = defaultOccasionId(settings, date)
-  const records = stored.length ? stored : defaultId ? [virtualMoment(date, defaultId)] : []
   const itemsById = new Map(items.map((i) => [i.id, i]))
   const engineItems = items.map((i) => toEngineItem(i, data.taxonomy))
   const anyActive = engineItems.some((i) => i.status === 'active')
   const moments: MomentView[] = []
 
-  for (const moment of sortMoments(records, data, settings)) {
-    const key = moment.id || VIRTUAL
+  for (const moment of sortMoments(stored, data, settings)) {
+    const key = moment.id
     const occasion = momentOccasion(data, settings, moment)
     const weather = weatherForWindow(forecast, date, occasion.window, settings, data)
     const [plannedOutfit, confirmedOutfit] = await Promise.all([
@@ -216,7 +187,7 @@ export async function loadDay(date: string, overrides: DayOverrides = {}): Promi
     ])
     const own = overrides.momentKey === key ? overrides : {}
     const signals = signalsFrom(prefs, moment, own)
-    const { wornRecently, recentOutfits } = await wearContext(date, { excludeMomentId: moment.id || null })
+    const { wornRecently, recentOutfits } = await wearContext(date, { excludeMomentId: moment.id })
     let outfits: OutfitProposal[] = []
     let reason: Reason | undefined
     if (anyActive) {
@@ -233,64 +204,24 @@ export async function loadDay(date: string, overrides: DayOverrides = {}): Promi
       const kept = toProposal(plannedOutfit)
       outfits = [kept, ...outfits.filter((o) => !sameIds(o.itemIds, kept.itemIds))]
     }
-    moments.push({ key, stored: !!moment.id, moment, occasion, weather, outfits, reason, plannedOutfit: plannedOutfit ?? null, confirmedOutfit: confirmedOutfit ?? null })
+    moments.push({ key, moment, occasion, weather, outfits, reason, plannedOutfit: plannedOutfit ?? null, confirmedOutfit: confirmedOutfit ?? null })
   }
 
-  return { date, settings, data, items, itemsById, forecast, moments, defaultOccasionId: defaultId }
+  return { date, settings, data, items, itemsById, forecast, moments }
 }
 
-/** Writes the weekday-default moment the first time the user acts on it. */
-export async function ensureStored(view: MomentView): Promise<string> {
-  if (view.stored) return view.moment.id
-  const record = await createMoment({ date: view.moment.date, occasionId: view.moment.occasionId, createdBy: 'user' })
-  return record.id
-}
-
-/**
- * Adds a moment to a day. A day that so far showed only its weekday default
- * keeps it: the default is written first, so "another outfit" is added to the
- * office day instead of replacing it.
- */
+/** "Where are you going?": one more moment on the day, with its hours or the occasion's own. */
 export async function addMoment(date: string, occasionId: string, window: [string, string] | null): Promise<MomentRecord> {
-  const existing = await momentsOn(date)
-  if (existing.length === 0) {
-    const settings = await getSettings()
-    const defaultId = defaultOccasionId(settings, date)
-    if (defaultId && defaultId !== occasionId) await createMoment({ date, occasionId: defaultId, createdBy: 'user' })
-  }
   return createMoment({ date, occasionId, start: window?.[0] ?? null, end: window?.[1] ?? null, createdBy: 'user' })
-}
-
-export async function changeMoment(view: MomentView, patch: { occasionId?: string; start?: string | null; end?: string | null }): Promise<void> {
-  const id = await ensureStored(view)
-  const current = await db.moments.get(id)
-  if (!current) return
-  const next: Partial<MomentRecord> = { ...patch }
-  // A kept outfit was chosen for another occasion: let it go.
-  if (patch.occasionId !== undefined && patch.occasionId !== current.occasionId && current.plannedOutfitId && !current.confirmedOutfitId) {
-    await db.outfits.delete(current.plannedOutfitId)
-    next.plannedOutfitId = null
-  }
-  await updateMoment(id, next)
 }
 
 export async function removeMoment(id: string): Promise<void> {
   await deleteMoment(id)
 }
 
-/** Pin an outfit to a moment that has not been worn yet (a future day, or later today). */
-export async function keepOutfit(view: MomentView, outfit: OutfitProposal): Promise<void> {
-  const id = await ensureStored(view)
-  const current = await db.moments.get(id)
-  if (current?.plannedOutfitId) await db.outfits.delete(current.plannedOutfitId)
-  const record = await saveOutfit(outfit, 'manual', JSON.stringify(outfit.reasons))
-  await updateMoment(id, { plannedOutfitId: record.id, weatherSnapshot: view.weather })
-}
-
 export async function wearOutfit(day: DayModel, view: MomentView, outfit: OutfitProposal, weather: WeatherWindow): Promise<OutfitRecord> {
-  const id = await ensureStored(view)
   const record = view.plannedOutfit && sameIds(view.plannedOutfit.itemIds, outfit.itemIds) ? view.plannedOutfit : await saveOutfit(outfit, 'today', JSON.stringify(outfit.reasons))
-  await confirmMoment(id, record, view.occasion, weather, day.data, checkinSettings(day.settings))
+  await confirmMoment(view.moment.id, record, view.occasion, weather, day.data, checkinSettings(day.settings))
   return record
 }
 
@@ -304,15 +235,6 @@ export async function rateMoment(momentId: string, rating: 'up' | 'down'): Promi
   const outfit = await db.outfits.get(moment.confirmedOutfitId)
   await updateMoment(momentId, { rating })
   if (outfit) await db.preferences.put({ id: newId(), type: rating === 'up' ? 'like' : 'dislike', itemIds: outfit.itemIds, outfitId: outfit.id, createdAt: nowIso() })
-}
-
-export async function toggleLock(view: MomentView, itemId: string): Promise<void> {
-  const id = await ensureStored(view)
-  const moment = await db.moments.get(id)
-  const locked = new Set(moment?.lockedItemIds ?? [])
-  if (locked.has(itemId)) locked.delete(itemId)
-  else locked.add(itemId)
-  await updateMoment(id, { lockedItemIds: [...locked] })
 }
 
 /** Alternatives for one slot of one moment: everything else locked, the current item excluded. */
@@ -345,31 +267,33 @@ async function planHistory(date: string): Promise<PlanHistory> {
 }
 
 /**
- * Plan the next `days` days from today: days without a moment get their
- * weekday default (days set to "decide on the day" are skipped and reported),
- * every unworn moment gets an outfit chosen in sequence, outfits the user kept
- * by hand are respected, outfits from an earlier plan are replaced.
+ * Plan the next `days` days after today: a day without a moment gets one for
+ * `occasionId` (made by the planner, so "clear the plan" can take it back),
+ * every unworn moment gets an outfit chosen in sequence, outfits the user
+ * kept by hand are respected, outfits from an earlier plan are replaced.
+ * Today's own pending outfits are taken as worn, so tomorrow does not repeat
+ * them.
  */
-export async function planAhead(days: number): Promise<{ planned: number; skipped: number }> {
+export async function planAhead(days: number, occasionId: string): Promise<{ planned: number }> {
   const count = Math.max(1, Math.min(PLAN_MAX_DAYS, Math.round(days)))
   const [settings, data, items, prefs] = await Promise.all([getSettings(), loadEngineData(), db.items.toArray(), db.preferences.toArray()])
   const forecast = await forecastFor(settings)
   const start = todayDate()
   const steps: PlanStep[] = []
   const toPlan = new Map<string, MomentRecord>()
-  let skipped = 0
 
-  for (let i = 0; i < count; i++) {
+  for (const m of await momentsOn(start)) {
+    if (m.confirmedOutfitId || !m.plannedOutfitId) continue
+    const kept = await db.outfits.get(m.plannedOutfitId)
+    if (!kept) continue
+    const occasion = momentOccasion(data, settings, m)
+    steps.push({ key: m.id, date: start, occasion, weather: weatherForWindow(forecast, start, occasion.window, settings, data) ?? estimatedWindow('mild', 20), fixedItemIds: kept.itemIds })
+  }
+
+  for (let i = 1; i <= count; i++) {
     const date = shiftDate(start, i)
     let records = await momentsOn(date)
-    if (records.length === 0) {
-      const id = defaultOccasionId(settings, date)
-      if (!id) {
-        skipped++
-        continue
-      }
-      records = [await createMoment({ date, occasionId: id, createdBy: 'planner' })]
-    }
+    if (records.length === 0) records = [await createMoment({ date, occasionId, createdBy: 'planner' })]
     for (const m of sortMoments(records, data, settings)) {
       if (m.confirmedOutfitId) continue // worn already: it is in the wear history
       const occasion = momentOccasion(data, settings, m)
@@ -401,7 +325,7 @@ export async function planAhead(days: number): Promise<{ planned: number; skippe
     planned++
   }
   await updateSettings({ planDays: count })
-  return { planned, skipped }
+  return { planned }
 }
 
 /** Drops what plan-ahead made from today on: its moments, and its outfits on the user's own moments. Worn moments and kept outfits stay. */

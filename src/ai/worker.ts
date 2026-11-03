@@ -1,15 +1,16 @@
 /// <reference lib="webworker" />
 /**
  * The AI worker: zero-shot classification with a fashion SigLIP vision tower
- * against prompt embeddings computed at build time, optional background
- * removal (RMBG-1.4), and pixel data for colour and hashing. Everything runs
- * on the device; model files come from the Hugging Face Hub once and stay in
- * the browser cache.
+ * against prompt embeddings computed at build time, background removal
+ * (RMBG-1.4) with the cutout laid on white, and pixel data for colour and
+ * hashing. Everything runs on the device; model files come from the Hugging
+ * Face Hub once and stay in the browser cache.
  */
 import type { PreTrainedModel, Processor, RawImage as RawImageType, Tensor as TensorType } from '@huggingface/transformers'
 import type { Backend, ClassifyRequest, InitRequest, ModelsConfig, Prediction, PromptEmbeddings, Scored, WorkerRequest, WorkerResponse } from './protocol'
 
 type Transformers = typeof import('@huggingface/transformers')
+type RawImage = InstanceType<typeof RawImageType>
 
 let lib: Transformers | null = null
 let config: InitRequest | null = null
@@ -106,7 +107,7 @@ function cosineTop(embedding: Float32Array | number[], labels: Record<string, nu
   return scored.slice(0, top).map((s, i) => ({ id: s.id, score: exps[i] / sum }))
 }
 
-async function embed(image: InstanceType<typeof RawImageType>): Promise<number[]> {
+async function embed(image: RawImage): Promise<number[]> {
   const v = await loadVision(config!.models)
   const inputs = await v.processor(image)
   const output = await v.model(inputs)
@@ -118,7 +119,8 @@ async function embed(image: InstanceType<typeof RawImageType>): Promise<number[]
   return row.map((x) => x / norm)
 }
 
-async function removeBackground(image: InstanceType<typeof RawImageType>): Promise<InstanceType<typeof RawImageType>> {
+/** The garment with its background turned transparent (the mask becomes the alpha channel). */
+async function removeBackground(image: RawImage): Promise<RawImage> {
   const t = await loadLib()
   const s = await loadSegmenter(config!.models)
   const { pixel_values } = await s.processor(image)
@@ -133,7 +135,22 @@ async function removeBackground(image: InstanceType<typeof RawImageType>): Promi
   return t.RawImage.fromCanvas(canvas)
 }
 
-function pixelsOf(image: InstanceType<typeof RawImageType>, size: number): ImageData {
+/**
+ * The cutout over an opaque white background: what the user sees in every
+ * theme, what the classifier scores and what the hash is taken from. (A
+ * transparent cutout drawn on the dark theme looked black.)
+ */
+async function onWhite(image: RawImage): Promise<RawImage> {
+  const t = await loadLib()
+  const canvas = new OffscreenCanvas(image.width, image.height)
+  const ctx = canvas.getContext('2d')!
+  ctx.fillStyle = '#ffffff'
+  ctx.fillRect(0, 0, image.width, image.height)
+  ctx.drawImage(image.toCanvas(), 0, 0)
+  return t.RawImage.fromCanvas(canvas)
+}
+
+function pixelsOf(image: RawImage, size: number): ImageData {
   const canvas = new OffscreenCanvas(size, size)
   const ctx = canvas.getContext('2d')!
   ctx.drawImage(image.toCanvas(), 0, 0, size, size)
@@ -149,10 +166,14 @@ async function classify(request: ClassifyRequest): Promise<void> {
   request.image.close()
   let image = t.RawImage.fromCanvas(canvas)
   let cutout: Blob | null = null
+  let colourPixels: ImageData | null = null
   if (request.removeBackground) {
     const t0 = performance.now()
     try {
-      image = await removeBackground(image)
+      const garment = await removeBackground(image)
+      // Colour is read from the garment pixels alone (alpha); everything else sees the cutout on white.
+      colourPixels = pixelsOf(garment, 192)
+      image = await onWhite(garment)
       cutout = await image.toBlob('image/png')
     } catch (error) {
       post({ type: 'error', id: null, message: `bg-removal: ${(error as Error).message}` })
@@ -170,10 +191,9 @@ async function classify(request: ClassifyRequest): Promise<void> {
     material: cosineTop(embedding, labels.materials, 3),
     embedding,
   }
-  const colourPixels = pixelsOf(image, 192)
   const hashPixels = pixelsOf(image, 32)
   timings.total = performance.now() - started
-  post({ type: 'result', id: request.id, prediction, cutout, colourPixels, hashPixels, timings })
+  post({ type: 'result', id: request.id, prediction, cutout, colourPixels: colourPixels ?? pixelsOf(image, 192), hashPixels, timings })
 }
 
 self.addEventListener('message', (event: MessageEvent<WorkerRequest>) => {

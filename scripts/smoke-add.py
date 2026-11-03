@@ -33,7 +33,7 @@ with sync_playwright() as p:
 
     page.goto(base + "app/#/onboarding", wait_until="networkidle")
     page.wait_for_timeout(800)
-    for text in ["I'll do it later", "Next", "Next", "Start"]:
+    for text in ["I'll do it later", "Next", "Start"]:
         page.get_by_role("button", name=text).first.click()
         page.wait_for_timeout(400)
 
@@ -56,7 +56,7 @@ with sync_playwright() as p:
     last = ""
     while time.time() < deadline:
         text = page.locator("body").inner_text()
-        if "Confirm" in text and "%" in text:
+        if "Add all" in text:
             break
         if "Could not process" in text or "could not be read" in text:
             break
@@ -69,7 +69,7 @@ with sync_playwright() as p:
     card = page.locator("ul li").first.inner_text() if page.locator("ul li").count() else page.locator("body").inner_text()
     print("CARD:", card[:600].replace("\n", " | "), flush=True)
     shot(page, "smoke-add")
-    confirm = page.get_by_role("button", name="Confirm", exact=True)
+    confirm = page.get_by_role("button", name="Add", exact=True)
     if confirm.count():
         confirm.first.click()
         page.wait_for_timeout(1000)

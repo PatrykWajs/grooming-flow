@@ -7,23 +7,21 @@ import { Button, Card, Chip, Empty, ItemThumb, Screen } from '../components'
 import { useEngineData, useItems, useLabel } from '../hooks'
 import { navigate } from '../router'
 
+/** The wardrobe: every item on white, by category. Tap one to see it, change it or put it in the wash. */
 export function Wardrobe() {
   const { t } = useTranslation()
   const label = useLabel()
   const data = useEngineData()
   const items = useItems()
   const [category, setCategory] = useState<string>('all')
-  const [status, setStatus_] = useState<string>('all')
-  const [colour, setColour] = useState<string>('all')
 
   const filtered = useMemo(() => {
     if (!items) return []
     return items
+      .filter((i) => i.status !== 'retired')
       .filter((i) => (category === 'all' ? true : i.category === category))
-      .filter((i) => (status === 'all' ? i.status !== 'retired' : i.status === status))
-      .filter((i) => (colour === 'all' ? true : i.colourPrimary === colour))
       .sort((a, b) => (a.category === b.category ? a.subcategory.localeCompare(b.subcategory) : a.category.localeCompare(b.category)))
-  }, [items, category, status, colour])
+  }, [items, category])
 
   const inWash = items?.filter((i) => i.status === 'wash') ?? []
   const counts = useMemo(() => {
@@ -32,11 +30,15 @@ export function Wardrobe() {
     return map
   }, [items])
 
-  const action = (
-    <Button onClick={() => navigate({ name: 'add' })}>＋ {t('wardrobe.add')}</Button>
-  )
+  const action = <Button onClick={() => navigate({ name: 'add' })}>＋ {t('wardrobe.add')}</Button>
 
-  if (!items || !data) return <Screen title={t('wardrobe.title')} action={action}><p className="text-sm text-[var(--muted)]">{t('common.loading')}</p></Screen>
+  if (!items || !data) {
+    return (
+      <Screen title={t('wardrobe.title')} action={action}>
+        <p className="text-sm text-[var(--muted)]">{t('common.loading')}</p>
+      </Screen>
+    )
+  }
   if (items.length === 0) {
     return (
       <Screen title={t('wardrobe.title')}>
@@ -47,7 +49,6 @@ export function Wardrobe() {
 
   const badgeFor = (item: ItemRecord) => {
     if (item.status === 'wash') return t('wardrobe.badge.wash')
-    if (item.status === 'stored') return t('wardrobe.badge.stored')
     if (daysBetween(item.addedAt, today()) < 14) return t('wardrobe.badge.new')
     return null
   }
@@ -55,7 +56,7 @@ export function Wardrobe() {
   return (
     <Screen title={t('wardrobe.title')} action={action}>
       <p className="mb-3 text-sm text-[var(--muted)]">{t('wardrobe.count', { count: items.filter((i) => i.status !== 'retired').length })}</p>
-      <div className="mb-3 flex gap-2 overflow-x-auto pb-1" role="group" aria-label={t('wardrobe.filter.category')}>
+      <div className="-mx-4 mb-4 flex gap-2 overflow-x-auto px-4 pb-1" role="group" aria-label={t('wardrobe.filter.category')}>
         <Chip active={category === 'all'} onClick={() => setCategory('all')}>
           {t('common.all')}
         </Chip>
@@ -65,26 +66,8 @@ export function Wardrobe() {
           </Chip>
         ))}
       </div>
-      <div className="mb-4 grid grid-cols-2 gap-2">
-        <select className="min-h-11 rounded-xl border border-[var(--line)] bg-[var(--card)] px-3 text-sm" value={status} onChange={(e) => setStatus_(e.target.value)} aria-label={t('wardrobe.filter.status')}>
-          <option value="all">{t('wardrobe.filter.status')}: {t('common.all')}</option>
-          {(['active', 'wash', 'stored', 'retired'] as const).map((s) => (
-            <option key={s} value={s}>
-              {t(`wardrobe.status.${s}`)}
-            </option>
-          ))}
-        </select>
-        <select className="min-h-11 rounded-xl border border-[var(--line)] bg-[var(--card)] px-3 text-sm" value={colour} onChange={(e) => setColour(e.target.value)} aria-label={t('wardrobe.filter.colour')}>
-          <option value="all">{t('wardrobe.filter.colour')}: {t('common.all')}</option>
-          {data.palette.colours.map((c) => (
-            <option key={c.id} value={c.id}>
-              {label.colour(c.id)}
-            </option>
-          ))}
-        </select>
-      </div>
 
-      {inWash.length > 0 && status === 'all' && (
+      {inWash.length > 0 && (
         <Card className="mb-4 flex items-center justify-between gap-3">
           <span className="text-sm">{t('wardrobe.inWash', { count: inWash.length })}</span>
           <Button tone="secondary" onClick={() => void db.transaction('rw', db.items, () => Promise.all(inWash.map((i) => setStatus(i.id, 'active'))))}>

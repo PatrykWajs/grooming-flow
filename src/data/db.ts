@@ -289,7 +289,8 @@ export const DEFAULT_SETTINGS: SettingsRecord = {
   lon: null,
   tempUnit: 'C',
   runsHotCold: 0,
-  weekdayDefaults: { '1': 'office', '2': 'office', '3': 'office', '4': 'office', '5': 'office', '6': 'casual', '0': 'home' },
+  // Unused since 0.2: Today asks "where are you going?" instead of assuming a weekday default. Kept for older backups.
+  weekdayDefaults: { '0': '', '1': '', '2': '', '3': '', '4': '', '5': '', '6': '' },
   planDays: 3,
   cooldownDays: { base: 1, layer: 1, bottoms: 1, shoes: 1, outer: 1, belt: 0, accessory: 0, set: 1 },
   washDefaults: { 'dress-shirt': 1, 'casual-shirt': 1, polo: 1, 't-shirt': 1, henley: 1, sweater: 3, cardigan: 3, hoodie: 3, jeans: 5, chinos: 3, 'dress-trousers': 3, shorts: 2, joggers: 2, cargo: 3 },

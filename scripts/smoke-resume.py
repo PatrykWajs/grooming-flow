@@ -45,7 +45,7 @@ with sync_playwright() as p:
 
     page.goto(base + "app/#/onboarding", wait_until="networkidle")
     page.wait_for_timeout(800)
-    for text in ["I'll do it later", "Next", "Next", "Start"]:
+    for text in ["I'll do it later", "Next", "Start"]:
         page.get_by_role("button", name=text).first.click()
         page.wait_for_timeout(300)
 
@@ -71,15 +71,15 @@ with sync_playwright() as p:
     started = time.time()
     while time.time() < started + 900:
         text = body(page)
-        # "Processing n of m" turns into "Review" once the last card is done.
-        if "Processing" not in text and ("Review" in text or "Confirm" in text):
+        # "Processing n of m" turns into "Check the names, then add" once the last card is done.
+        if "Processing" not in text and ("Check the names" in text or "Add all" in text):
             break
         time.sleep(5)
     print(f"pipeline took {int(time.time() - started)}s", flush=True)
     shot(page, "resume-3-ready")
-    ready = page.get_by_role("button", name="Confirm", exact=True).count()
+    ready = page.get_by_role("button", name="Add", exact=True).count()
     print("ready cards:", ready, flush=True)
-    confirm_all = page.get_by_role("button", name="Confirm all", exact=True)
+    confirm_all = page.get_by_role("button", name="Add all", exact=True)
     if confirm_all.count():
         confirm_all.first.click()
         page.wait_for_timeout(1500)

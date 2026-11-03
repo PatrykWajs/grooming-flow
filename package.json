@@ -1,9 +1,9 @@
 {
   "name": "grooming-flow",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.2.0",
   "type": "module",
-  "description": "Free, local-first wardrobe assistant: photograph what you own, get one outfit a day that fits the weather and the occasion, and wear everything fairly.",
+  "description": "Free, local-first wardrobe assistant: add your clothes, say where you're going, get the outfit; everything you own worn in turn.",
   "license": "MIT",
   "scripts": {
     "dev": "vite",
