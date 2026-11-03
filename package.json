@@ -1,0 +1,43 @@
+{
+  "name": "grooming-flow",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "description": "Free, local-first wardrobe assistant: photograph what you own, get one outfit a day that fits the weather and the occasion, and wear everything fairly.",
+  "license": "MIT",
+  "scripts": {
+    "dev": "vite",
+    "build": "tsc --noEmit && vite build",
+    "preview": "vite preview",
+    "test": "vitest",
+    "test:run": "vitest run",
+    "check": "tsc --noEmit",
+    "embeddings": "node scripts/build-prompt-embeddings.mjs"
+  },
+  "dependencies": {
+    "@fontsource-variable/inter": "^5.3.0",
+    "@fontsource-variable/literata": "^5.3.0",
+    "@huggingface/transformers": "^4.3.2",
+    "dexie": "^4.4.7",
+    "dexie-react-hooks": "^4.4.0",
+    "fflate": "^0.8.3",
+    "i18next": "^26.7.1",
+    "i18next-browser-languagedetector": "^8.3.0",
+    "react": "^19.3.1",
+    "react-dom": "^19.3.1",
+    "react-i18next": "^17.1.11",
+    "zustand": "^5.0.16"
+  },
+  "devDependencies": {
+    "@tailwindcss/vite": "^4.3.4",
+    "@types/react": "^19.3.0",
+    "@types/react-dom": "^19.3.0",
+    "@vitejs/plugin-react": "^6.2.1",
+    "tailwindcss": "^4.3.4",
+    "typescript": "^7.0.2",
+    "vite": "^8.3.5",
+    "vite-plugin-pwa": "^2.0.0",
+    "vitest": "^4.1.12",
+    "workbox-window": "^7.4.1"
+  }
+}

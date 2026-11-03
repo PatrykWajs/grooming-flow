@@ -1,0 +1,55 @@
+<!doctype html>
+<html lang="el">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+    <meta name="theme-color" content="#F4F0E8" media="(prefers-color-scheme: light)" />
+    <meta name="theme-color" content="#1F1F1F" media="(prefers-color-scheme: dark)" />
+    <meta name="description" content="Grooming Flow: a free wardrobe assistant that runs on your phone. Photograph what you own, get one outfit a day." />
+    <link rel="icon" href="/icons/icon-192.png" type="image/png" />
+    <link rel="apple-touch-icon" href="/icons/apple-touch-icon.png" />
+    <title>Grooming Flow</title>
+  </head>
+  <body class="landing">
+    <main class="landing-main">
+      <header class="landing-header">
+        <span class="monogram" aria-hidden="true">GF</span>
+        <h1>Grooming Flow</h1>
+        <p class="lang-switch">
+          <button type="button" data-set-lang="el">Ελληνικά</button>
+          <span aria-hidden="true">·</span>
+          <button type="button" data-set-lang="en">English</button>
+        </p>
+      </header>
+
+      <section data-lang="el" hidden>
+        <p class="lead">Η ντουλάπα σου, ένα σύνολο την ημέρα. Φωτογραφίζεις ό,τι έχεις, η εφαρμογή τα ταξινομεί μόνη της και κάθε πρωί σου προτείνει τι να φορέσεις ανάλογα με τον καιρό και την ημέρα σου, φροντίζοντας να φοριούνται όλα εξίσου.</p>
+        <p><a class="button" href="app/">Άνοιγμα της εφαρμογής</a></p>
+        <h2>Εγκατάσταση στο κινητό</h2>
+        <ol>
+          <li><strong>iPhone:</strong> άνοιξε τον σύνδεσμο στο Safari, πάτα <em>Κοινή χρήση</em> και μετά <em>Προσθήκη στην οθόνη Αφετηρίας</em>.</li>
+          <li><strong>Android:</strong> άνοιξε τον σύνδεσμο στο Chrome, πάτα το μενού (⋮) και μετά <em>Εγκατάσταση εφαρμογής</em>.</li>
+        </ol>
+        <h2>Απόρρητο</h2>
+        <p>Όλα μένουν στο κινητό σου: ούτε λογαριασμός, ούτε παρακολούθηση, ούτε cookies. Οι μόνες συνδέσεις είναι η πρόγνωση καιρού (Open-Meteo) και το κατέβασμα των μοντέλων την πρώτη φορά.</p>
+      </section>
+
+      <section data-lang="en" hidden>
+        <p class="lead">Your wardrobe, one outfit a day. Photograph what you own, the app sorts it on its own, and every morning it proposes what to wear for today's weather and your plans, making sure everything gets worn.</p>
+        <p><a class="button" href="app/">Open the app</a></p>
+        <h2>Install on your phone</h2>
+        <ol>
+          <li><strong>iPhone:</strong> open the link in Safari, tap <em>Share</em>, then <em>Add to Home Screen</em>.</li>
+          <li><strong>Android:</strong> open the link in Chrome, tap the menu (⋮), then <em>Install app</em>.</li>
+        </ol>
+        <h2>Privacy</h2>
+        <p>Everything stays on your phone: no account, no tracking, no cookies. The only connections are the weather forecast (Open-Meteo) and the one-time model download.</p>
+      </section>
+
+      <footer class="landing-footer">
+        <p><span data-lang="el" hidden>Έκδοση</span><span data-lang="en" hidden>Version</span> <span id="version">0.1.0</span> · <span data-lang="el" hidden>Πρόγνωση από</span><span data-lang="en" hidden>Forecast by</span> <a href="https://open-meteo.com/" rel="noopener">Open-Meteo</a> (CC BY 4.0)</p>
+      </footer>
+    </main>
+    <script type="module" src="/src/landing.ts"></script>
+  </body>
+</html>

@@ -1,0 +1,10 @@
+node_modules/
+dist/
+dev-dist/
+fixtures-private/
+.env
+.env.*
+.DS_Store
+*.log
+*.local
+.vite/

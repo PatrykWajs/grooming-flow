@@ -1,0 +1,37 @@
+{
+  "app": {
+    "name": "Grooming Flow",
+    "tagline": "Your wardrobe, one outfit a day."
+  },
+  "nav": {
+    "today": "Today",
+    "plan": "Plan",
+    "wardrobe": "Wardrobe",
+    "history": "History",
+    "settings": "Settings"
+  },
+  "common": {
+    "yes": "yes",
+    "no": "no",
+    "unknown": "unknown"
+  },
+  "m0": {
+    "title": "Shell check",
+    "lead": "Nothing to wear yet: this build only checks that your phone can run the app.",
+    "standalone": "Installed to the home screen",
+    "webgpu": "WebGPU available",
+    "wasmThreads": "WASM threads available",
+    "persisted": "Storage marked persistent",
+    "quota": "Storage quota",
+    "usage": "Storage used",
+    "language": "Language",
+    "installHint": "On iPhone: Share, then Add to Home Screen. On Android: menu, then Install app."
+  },
+  "settings": {
+    "language": "Language",
+    "theme": "Theme",
+    "themeAuto": "Automatic",
+    "themeLight": "Light",
+    "themeDark": "Dark"
+  }
+}

@@ -1,0 +1,157 @@
+@import 'tailwindcss';
+@import '@fontsource-variable/inter';
+@import '@fontsource-variable/literata';
+
+@theme {
+  --font-sans: 'Inter Variable', system-ui, -apple-system, sans-serif;
+  --font-display: 'Literata Variable', Georgia, serif;
+  --color-paper: #f4f0e8;
+  --color-ink: #1f1f1f;
+  --color-olive: #5a6b4d;
+}
+
+/* Design tokens. Light: warm off-white paper, charcoal ink, olive accent.
+   Dark: the paper inverts to charcoal, the accent lightens for contrast. */
+:root {
+  color-scheme: light dark;
+  --bg: #f4f0e8;
+  --fg: #1f1f1f;
+  --muted: #5f5b53;
+  --card: #fffdf9;
+  --line: #ddd6c7;
+  --accent: #5a6b4d;
+  --accent-fg: #f4f0e8;
+}
+
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme='light']) {
+    --bg: #1f1f1f;
+    --fg: #f4f0e8;
+    --muted: #b3ada2;
+    --card: #2a2926;
+    --line: #3d3b36;
+    --accent: #8fa37c;
+    --accent-fg: #1f1f1f;
+  }
+}
+
+:root[data-theme='dark'] {
+  --bg: #1f1f1f;
+  --fg: #f4f0e8;
+  --muted: #b3ada2;
+  --card: #2a2926;
+  --line: #3d3b36;
+  --accent: #8fa37c;
+  --accent-fg: #1f1f1f;
+}
+
+html,
+body {
+  background: var(--bg);
+  color: var(--fg);
+  font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-display);
+  letter-spacing: -0.01em;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+}
+
+/* Landing page (static, EL/EN). */
+.landing-main {
+  max-width: 40rem;
+  margin: 0 auto;
+  padding: max(1.5rem, env(safe-area-inset-top)) 1rem 3rem;
+}
+.landing-header {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-bottom: 1.5rem;
+}
+.landing-header h1 {
+  font-size: 2.25rem;
+  font-weight: 600;
+  margin: 0;
+}
+.monogram {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  width: 3rem;
+  height: 3rem;
+  border-radius: 0.75rem;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.25rem;
+}
+.lang-switch {
+  display: flex;
+  gap: 0.5rem;
+  align-items: center;
+  margin: 0;
+}
+.lang-switch button {
+  min-height: 2.75rem;
+  padding: 0 0.25rem;
+  background: none;
+  border: 0;
+  color: var(--muted);
+  font: inherit;
+  cursor: pointer;
+  text-decoration: underline;
+}
+.lang-switch button[aria-pressed='true'] {
+  color: var(--fg);
+  text-decoration: none;
+  font-weight: 600;
+}
+.lead {
+  font-size: 1.125rem;
+  line-height: 1.6;
+}
+.landing-main h2 {
+  font-size: 1.375rem;
+  margin: 2rem 0 0.5rem;
+}
+.landing-main ol {
+  padding-left: 1.25rem;
+  line-height: 1.6;
+}
+.landing-main li + li {
+  margin-top: 0.5rem;
+}
+.button {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  min-height: 3rem;
+  padding: 0 1.5rem;
+  border-radius: 999px;
+  background: var(--accent);
+  color: var(--accent-fg);
+  font-weight: 600;
+  text-decoration: none;
+}
+.landing-footer {
+  margin-top: 3rem;
+  font-size: 0.875rem;
+  color: var(--muted);
+}
+.landing-footer a {
+  color: inherit;
+}
