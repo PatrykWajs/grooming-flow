@@ -195,7 +195,8 @@ export function dominantColours(pixels: ImageData, palette: Palette, hasAlpha: b
   for (let y = 0; y < height; y += stride) {
     for (let x = 0; x < width; x += stride) {
       const i = (y * width + x) * 4
-      if (hasAlpha && data[i + 3] < 128) continue
+      // Only fully opaque pixels: downscaled cutout edges blend towards black.
+      if (hasAlpha && data[i + 3] < 240) continue
       const lab = rgbToLab(data[i], data[i + 1], data[i + 2])
       if (border && deltaE(lab, border) < 12) continue
       points.push(lab)

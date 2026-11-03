@@ -36,6 +36,7 @@
     "addItems": "Add items",
     "nothingEligible": "Nothing in the wardrobe fits today's weather and occasion.",
     "noCombination": "No combination passes the style rules today. Try another occasion or add items.",
+    "missingSlots": "Nothing in the wardrobe fits today for: {{slots}}. Add items or change the occasion.",
     "confirmed": "Logged. See you tomorrow.",
     "rateUp": "Liked it",
     "rateDown": "Not for me",

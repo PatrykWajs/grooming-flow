@@ -170,7 +170,7 @@ async function classify(request: ClassifyRequest): Promise<void> {
     material: cosineTop(embedding, labels.materials, 3),
     embedding,
   }
-  const colourPixels = pixelsOf(image, 128)
+  const colourPixels = pixelsOf(image, 192)
   const hashPixels = pixelsOf(image, 32)
   timings.total = performance.now() - started
   post({ type: 'result', id: request.id, prediction, cutout, colourPixels, hashPixels, timings })

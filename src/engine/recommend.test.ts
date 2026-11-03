@@ -102,6 +102,15 @@ describe('recommend', () => {
     expect(home.outfits[0].slots.outer).toBeUndefined()
   })
 
+  it('returns no outfit, with the missing slots, when a core slot cannot be filled', () => {
+    const weather = windowFor('2026-10-05', { low: 14, high: 22 }, 'office')
+    const onlyShirt = wardrobe.filter((i) => i.subcategory === 'casual-shirt').slice(0, 1)
+    const result = recommend(makeContext('2026-10-05', onlyShirt, weather, occasion('office')), data)
+    expect(result.outfits).toHaveLength(0)
+    expect(result.reason?.key).toBe('reason.missingSlots')
+    expect(String(result.reason?.params?.slots)).toContain('bottoms')
+  })
+
   it('answers in under 300 ms for a 300-item wardrobe', () => {
     const big = makeFixtureWardrobe(data.taxonomy, 300, 7)
     const weather = windowFor('2026-10-05', { low: 14, high: 22 }, 'office')

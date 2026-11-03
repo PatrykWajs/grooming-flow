@@ -391,8 +391,14 @@ export function recommend(ctx: RecommendContext, data: EngineData, options: Reco
     if (finals.length) relaxed.push({ key: 'reason.formalityRelaxed' })
   }
 
-  if (finals.length === 0) {
-    return { outfits: [], reason: eligible.length === 0 ? { key: 'reason.nothingEligible' } : { key: 'reason.noCombination' } }
+  // An outfit needs a top, bottoms and shoes; a relaxed slot without a single
+  // candidate means the wardrobe cannot dress this day.
+  const CORE = ['base', 'bottoms', 'shoes']
+  const missingCore = CORE.filter((s) => slots.some((slot) => slot.id === s) && !finals.some((state) => state.slots[s]))
+  if (finals.length === 0 || missingCore.length > 0) {
+    if (eligible.length === 0) return { outfits: [], reason: { key: 'reason.nothingEligible' } }
+    if (missingCore.length > 0) return { outfits: [], reason: { key: 'reason.missingSlots', params: { slots: missingCore.join(',') } } }
+    return { outfits: [], reason: { key: 'reason.noCombination' } }
   }
 
   // Diversity: alternatives differ from every earlier result in a main slot

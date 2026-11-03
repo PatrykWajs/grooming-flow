@@ -153,7 +153,18 @@ export function Today() {
           ) : model.items.length === 0 ? (
             <Empty title={t('wardrobe.empty.title')} body={t('today.noItems')} cta={t('today.addItems')} onCta={() => navigate({ name: 'add' })} />
           ) : !current ? (
-            <Empty title={t('today.title')} body={model.reason?.key === 'reason.nothingEligible' ? t('today.nothingEligible') : t('today.noCombination')} />
+            <Empty
+              title={t('today.title')}
+              body={
+                model.reason?.key === 'reason.nothingEligible'
+                  ? t('today.nothingEligible')
+                  : model.reason?.key === 'reason.missingSlots'
+                    ? t('today.missingSlots', { slots: String(model.reason.params?.slots ?? '').split(',').map((s) => t(`slots.${s}`)).join(', ') })
+                    : t('today.noCombination')
+              }
+              cta={t('today.addItems')}
+              onCta={() => navigate({ name: 'add' })}
+            />
           ) : (
             <>
               <Card>
