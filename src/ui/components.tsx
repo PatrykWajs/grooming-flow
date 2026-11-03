@@ -44,10 +44,11 @@ export function Card({ children, className = '' }: { children: ReactNode; classN
   return <section className={`rounded-2xl border border-[var(--line)] bg-[var(--card)] p-4 ${className}`}>{children}</section>
 }
 
-export function ItemThumb({ item, size = 'md', onClick, badge }: { item: ItemRecord; size?: 'sm' | 'md' | 'lg'; onClick?: () => void; badge?: ReactNode }) {
+/** `fill` takes the width of its cell (square); the fixed sizes are for rows and lists. */
+export function ItemThumb({ item, size = 'md', onClick, badge }: { item: ItemRecord; size?: 'sm' | 'md' | 'lg' | 'fill'; onClick?: () => void; badge?: ReactNode }) {
   const url = useBlobUrl(item.thumbBlobId ?? item.photoBlobId)
   const label = useLabel()
-  const sizes = { sm: 'h-16 w-16', md: 'h-24 w-24', lg: 'h-36 w-36' }
+  const sizes = { sm: 'h-16 w-16', md: 'h-24 w-24', lg: 'h-36 w-36', fill: 'aspect-square w-full' }
   const content = (
     <span className={`relative block ${sizes[size]} overflow-hidden rounded-xl bg-[var(--bg)]`}>
       {url ? (
@@ -60,7 +61,7 @@ export function ItemThumb({ item, size = 'md', onClick, badge }: { item: ItemRec
   )
   if (!onClick) return content
   return (
-    <button type="button" onClick={onClick} aria-label={label.itemName(item)} className="rounded-xl focus:outline-2 focus:outline-[var(--accent)]">
+    <button type="button" onClick={onClick} aria-label={label.itemName(item)} className={`rounded-xl focus:outline-2 focus:outline-[var(--accent)] ${size === 'fill' ? 'block w-full' : ''}`}>
       {content}
     </button>
   )

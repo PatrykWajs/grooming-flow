@@ -98,19 +98,23 @@ export function WeekdayDefaults({ settings }: { settings: SettingsRecord }) {
   const label = useLabel()
   if (!data) return null
   return (
-    <div className="grid grid-cols-2 gap-2">
-      {[1, 2, 3, 4, 5, 6, 0].map((d) => (
-        <label key={d} className="flex flex-col gap-1 text-xs text-[var(--muted)]">
-          {t(`weekday.${d}`)}
-          <select className={selectClass} value={settings.weekdayDefaults[String(d)] ?? 'casual'} onChange={(e) => void updateSettings({ weekdayDefaults: { ...settings.weekdayDefaults, [String(d)]: e.target.value } })}>
-            {data.occasions.occasions.map((o) => (
-              <option key={o.id} value={o.id}>
-                {label.occasion(o.id)}
-              </option>
-            ))}
-          </select>
-        </label>
-      ))}
+    <div>
+      <p className="mb-2 text-xs text-[var(--muted)]">{t('settings.weekdayHint')}</p>
+      <div className="grid grid-cols-2 gap-2">
+        {[1, 2, 3, 4, 5, 6, 0].map((d) => (
+          <label key={d} className="flex flex-col gap-1 text-xs text-[var(--muted)]">
+            {t(`weekday.${d}`)}
+            <select className={selectClass} value={settings.weekdayDefaults[String(d)] ?? ''} onChange={(e) => void updateSettings({ weekdayDefaults: { ...settings.weekdayDefaults, [String(d)]: e.target.value } })}>
+              <option value="">{t('settings.weekdayNone')}</option>
+              {data.occasions.occasions.map((o) => (
+                <option key={o.id} value={o.id}>
+                  {label.occasion(o.id)}
+                </option>
+              ))}
+            </select>
+          </label>
+        ))}
+      </div>
     </div>
   )
 }

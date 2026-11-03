@@ -2,7 +2,8 @@ import Dexie, { type EntityTable } from 'dexie'
 import type { CategoryId, HourlyWeather, ItemStatus, Material, Pattern, Season, WeatherWindow } from '../engine/types'
 
 export const DB_NAME = 'groomingflow-db'
-export const SCHEMA_VERSION = 1
+/** v1: one day plan per date. v2: moments (any number of outfits per day, each with its own occasion and hours). v3: the old table dropped. */
+export const SCHEMA_VERSION = 3
 
 export interface ItemRecord {
   id: string
@@ -47,8 +48,40 @@ export interface OutfitRecord {
   source: OutfitSource
 }
 
-export interface DayPlanRecord {
-  /** YYYY-MM-DD, the primary key. */
+/**
+ * One outfit occasion on one day: "office 08:00–18:00", "dinner 20:00–23:00",
+ * "right now". A day holds any number of them; each gets its own weather
+ * window, suggestion, plan and check-in.
+ */
+export interface MomentRecord {
+  id: string
+  /** YYYY-MM-DD */
+  date: string
+  occasionId: string
+  /** Local 'HH:MM'; null means the occasion's default window. An end at or before the start crosses midnight. */
+  start: string | null
+  end: string | null
+  createdAt: string
+  /** Who made it: the user, or the plan-ahead action (so "clear the plan" knows what to remove). */
+  createdBy: 'user' | 'planner'
+  weatherSnapshot: WeatherWindow | null
+  /** Outfit kept for this moment before it is worn (plan ahead, or "keep this"). */
+  plannedOutfitId: string | null
+  confirmedOutfitId: string | null
+  lockedItemIds: string[]
+  rating: 'up' | 'down' | null
+  note: string
+  confirmedAt: string | null
+  /**
+   * Items whose eligible-day counter this confirmation incremented (an item is
+   * counted once per day however many moments it was eligible for). null on
+   * records migrated from v1, where every item was counted.
+   */
+  eligibleItemIds: string[] | null
+}
+
+/** The v1 day record, kept for the schema migration and for restoring v1 backups. */
+export interface LegacyDayPlanRecord {
   date: string
   occasionId: string
   weatherSnapshot: WeatherWindow | null
@@ -59,6 +92,26 @@ export interface DayPlanRecord {
   rating: 'up' | 'down' | null
   note: string
   confirmedAt: string | null
+}
+
+export function momentFromDayPlan(plan: LegacyDayPlanRecord): MomentRecord {
+  return {
+    id: `day-${plan.date}`,
+    date: plan.date,
+    occasionId: plan.occasionId,
+    start: null,
+    end: null,
+    createdAt: plan.confirmedAt ?? `${plan.date}T00:00:00.000Z`,
+    createdBy: 'user',
+    weatherSnapshot: plan.weatherSnapshot ?? null,
+    plannedOutfitId: plan.plannedOutfitId ?? null,
+    confirmedOutfitId: plan.confirmedOutfitId ?? null,
+    lockedItemIds: plan.lockedItemIds ?? [],
+    rating: plan.rating ?? null,
+    note: plan.note ?? '',
+    confirmedAt: plan.confirmedAt ?? null,
+    eligibleItemIds: null,
+  }
 }
 
 export interface WearEntryRecord {
@@ -89,7 +142,10 @@ export interface SettingsRecord {
   lon: number | null
   tempUnit: 'C' | 'F'
   runsHotCold: number
+  /** Weekday (0 Sunday … 6 Saturday) → occasion id; '' means "decide on the day". */
   weekdayDefaults: Record<string, string>
+  /** Days the plan-ahead sheet last planned (remembered for next time). */
+  planDays: number
   cooldownDays: Record<string, number>
   washDefaults: Record<string, number>
   occasionWindows: Record<string, [string, string]>
@@ -144,7 +200,7 @@ export interface DailyRecord {
 export class GroomingDB extends Dexie {
   items!: EntityTable<ItemRecord, 'id'>
   outfits!: EntityTable<OutfitRecord, 'id'>
-  dayPlans!: EntityTable<DayPlanRecord, 'date'>
+  moments!: EntityTable<MomentRecord, 'id'>
   wearEntries!: EntityTable<WearEntryRecord, 'id'>
   occasions!: EntityTable<OccasionRecord, 'id'>
   settings!: EntityTable<SettingsRecord, 'id'>
@@ -154,7 +210,7 @@ export class GroomingDB extends Dexie {
 
   constructor(name = DB_NAME) {
     super(name)
-    this.version(SCHEMA_VERSION).stores({
+    this.version(1).stores({
       items: 'id, category, subcategory, status, addedAt, lastWorn, setId',
       outfits: 'id, createdAt, source',
       dayPlans: 'date, confirmedOutfitId',
@@ -165,6 +221,15 @@ export class GroomingDB extends Dexie {
       blobs: 'id',
       weather: 'key',
     })
+    // v2 adds moments and copies every v1 day into one; v3 drops the old table
+    // (Dexie: migrate in one version, delete in the next).
+    this.version(2)
+      .stores({ moments: 'id, date, confirmedOutfitId, plannedOutfitId' })
+      .upgrade(async (tx) => {
+        const plans = (await tx.table('dayPlans').toArray()) as LegacyDayPlanRecord[]
+        if (plans.length) await tx.table('moments').bulkAdd(plans.map(momentFromDayPlan))
+      })
+    this.version(SCHEMA_VERSION).stores({ dayPlans: null })
   }
 }
 
@@ -179,6 +244,7 @@ export const DEFAULT_SETTINGS: SettingsRecord = {
   tempUnit: 'C',
   runsHotCold: 0,
   weekdayDefaults: { '1': 'office', '2': 'office', '3': 'office', '4': 'office', '5': 'office', '6': 'casual', '0': 'home' },
+  planDays: 3,
   cooldownDays: { base: 1, layer: 1, bottoms: 1, shoes: 1, outer: 1, belt: 0, accessory: 0, set: 1 },
   washDefaults: { 'dress-shirt': 1, 'casual-shirt': 1, polo: 1, 't-shirt': 1, henley: 1, sweater: 3, cardigan: 3, hoodie: 3, jeans: 5, chinos: 3, 'dress-trousers': 3, shorts: 2, joggers: 2, cargo: 3 },
   occasionWindows: {},

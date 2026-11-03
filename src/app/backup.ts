@@ -4,9 +4,10 @@
  * collisions. Uses fflate (store-only for images, they are already compressed).
  */
 import { strFromU8, strToU8, unzip, zip, type Unzipped, type Zippable } from 'fflate'
-import { db, nowIso, updateSettings, type BlobRecord } from '../data/db'
+import { db, momentFromDayPlan, nowIso, updateSettings, type BlobRecord, type LegacyDayPlanRecord, type MomentRecord } from '../data/db'
 
-export const BACKUP_VERSION = 1
+/** 1: one `dayPlans` row per date. 2: `moments` (several outfits per day). A v1 file still restores. */
+export const BACKUP_VERSION = 2
 const APP = 'groomingflow'
 
 interface BackupData {
@@ -15,7 +16,9 @@ interface BackupData {
   exportedAt: string
   items: unknown[]
   outfits: unknown[]
-  dayPlans: unknown[]
+  moments?: MomentRecord[]
+  /** v1 files only. */
+  dayPlans?: LegacyDayPlanRecord[]
   wearEntries: unknown[]
   occasions: unknown[]
   settings: unknown[]
@@ -31,10 +34,10 @@ function extensionFor(mime: string): string {
 }
 
 export async function exportBackup(): Promise<{ blob: Blob; filename: string; items: number }> {
-  const [items, outfits, dayPlans, wearEntries, occasions, settings, preferences, blobs] = await Promise.all([
+  const [items, outfits, moments, wearEntries, occasions, settings, preferences, blobs] = await Promise.all([
     db.items.toArray(),
     db.outfits.toArray(),
-    db.dayPlans.toArray(),
+    db.moments.toArray(),
     db.wearEntries.toArray(),
     db.occasions.toArray(),
     db.settings.toArray(),
@@ -48,7 +51,7 @@ export async function exportBackup(): Promise<{ blob: Blob; filename: string; it
     files[file] = [new Uint8Array(await b.bytes.arrayBuffer()), { level: 0 }]
     blobIndex.push({ id: b.id, mime: b.mime, file })
   }
-  const data: BackupData = { app: APP, version: BACKUP_VERSION, exportedAt: nowIso(), items, outfits, dayPlans, wearEntries, occasions, settings, preferences, blobs: blobIndex }
+  const data: BackupData = { app: APP, version: BACKUP_VERSION, exportedAt: nowIso(), items, outfits, moments, wearEntries, occasions, settings, preferences, blobs: blobIndex }
   files['data.json'] = [strToU8(JSON.stringify(data)), { level: 6 }]
   const zipped = await new Promise<Uint8Array>((resolve, reject) => zip(files, (err, out) => (err ? reject(err) : resolve(out))))
   const date = new Date().toISOString().slice(0, 10)
@@ -81,18 +84,19 @@ export async function importBackup(file: Blob): Promise<{ items: number; days: n
     if (!content) continue
     blobRecords.push({ id: b.id, mime: b.mime, bytes: new Blob([content as BlobPart], { type: b.mime }) })
   }
-  await db.transaction('rw', [db.items, db.outfits, db.dayPlans, db.wearEntries, db.occasions, db.settings, db.preferences, db.blobs], async () => {
+  const moments: MomentRecord[] = data.moments ?? (data.dayPlans ?? []).map(momentFromDayPlan)
+  await db.transaction('rw', [db.items, db.outfits, db.moments, db.wearEntries, db.occasions, db.settings, db.preferences, db.blobs], async () => {
     await db.blobs.bulkPut(blobRecords)
     await db.items.bulkPut(data.items as never[])
     await db.outfits.bulkPut(data.outfits as never[])
-    await db.dayPlans.bulkPut(data.dayPlans as never[])
+    await db.moments.bulkPut(moments)
     await db.wearEntries.bulkPut(data.wearEntries as never[])
     await db.occasions.bulkPut(data.occasions as never[])
     await db.preferences.bulkPut(data.preferences as never[])
     const settings = (data.settings as { id: string }[]).find((s) => s.id === 'settings')
     if (settings) await db.settings.put({ ...settings, id: 'settings' } as never)
   })
-  return { items: data.items.length, days: data.dayPlans.length }
+  return { items: data.items.length, days: new Set(moments.map((m) => m.date)).size }
 }
 
 export async function deleteEverything(): Promise<void> {

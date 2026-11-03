@@ -1,10 +1,10 @@
 import { useLiveQuery } from 'dexie-react-hooks'
 import { useMemo, useState } from 'react'
 import { useTranslation } from 'react-i18next'
-import { rateDay } from '../../app/today'
-import { db, today, type OutfitRecord } from '../../data/db'
+import { rateMoment, resolveWindow } from '../../app/today'
+import { db, today, type MomentRecord, type OutfitRecord } from '../../data/db'
 import { Button, Card, ItemThumb, Screen, Sheet } from '../components'
-import { formatDate, useItems, useLabel } from '../hooks'
+import { formatDate, useEngineData, useItems, useLabel } from '../hooks'
 import { OutfitCard } from '../OutfitCard'
 
 function monthKey(d: Date): string {
@@ -14,6 +14,7 @@ function monthKey(d: Date): string {
 export function History() {
   const { t } = useTranslation()
   const label = useLabel()
+  const data = useEngineData()
   const items = useItems()
   const [month, setMonth] = useState(() => {
     const d = new Date()
@@ -21,13 +22,21 @@ export function History() {
   })
   const [selected, setSelected] = useState<string | null>(null)
   const key = monthKey(month)
-  const plans = useLiveQuery(() => db.dayPlans.where('date').between(`${key}-01`, `${key}-32`, true, true).toArray(), [key])
-  const outfitIds = useMemo(() => (plans ?? []).map((p) => p.confirmedOutfitId).filter((x): x is string => !!x), [plans])
+  const moments = useLiveQuery(() => db.moments.where('date').between(`${key}-01`, `${key}-32`, true, true).toArray(), [key])
+  const confirmed = useMemo(() => (moments ?? []).filter((m) => m.confirmedOutfitId).sort((a, b) => (a.confirmedAt ?? '').localeCompare(b.confirmedAt ?? '')), [moments])
+  const outfitIds = useMemo(() => confirmed.map((m) => m.confirmedOutfitId as string), [confirmed])
   const outfits = useLiveQuery(async (): Promise<OutfitRecord[]> => (outfitIds.length ? db.outfits.where('id').anyOf(outfitIds).toArray() : []), [outfitIds.join(',')])
-  const totalLogged = useLiveQuery(() => db.dayPlans.filter((p) => !!p.confirmedOutfitId).count(), [])
+  const totalLogged = useLiveQuery(async () => {
+    const all = await db.moments.filter((m) => !!m.confirmedOutfitId).toArray()
+    return new Set(all.map((m) => m.date)).size
+  }, [])
   const itemsById = useMemo(() => new Map((items ?? []).map((i) => [i.id, i])), [items])
   const outfitsById = useMemo(() => new Map((outfits ?? []).map((o) => [o.id, o])), [outfits])
-  const plansByDate = useMemo(() => new Map((plans ?? []).map((p) => [p.date, p])), [plans])
+  const byDate = useMemo(() => {
+    const map = new Map<string, MomentRecord[]>()
+    for (const m of confirmed) map.set(m.date, [...(map.get(m.date) ?? []), m])
+    return map
+  }, [confirmed])
 
   const first = new Date(month.getFullYear(), month.getMonth(), 1)
   const daysInMonth = new Date(month.getFullYear(), month.getMonth() + 1, 0).getDate()
@@ -36,8 +45,14 @@ export function History() {
   const monthLabel = new Intl.DateTimeFormat(label.lang === 'el' ? 'el-GR' : 'en-GB', { month: 'long', year: 'numeric' }).format(month)
   const weekdays = [1, 2, 3, 4, 5, 6, 0].map((d) => t(`weekday.${d}`).slice(0, 2))
 
-  const selectedPlan = selected ? plansByDate.get(selected) : undefined
-  const selectedOutfit = selectedPlan?.confirmedOutfitId ? outfitsById.get(selectedPlan.confirmedOutfitId) : undefined
+  function hoursOf(m: MomentRecord): string {
+    const occasion = data?.occasions.occasions.find((o) => o.id === m.occasionId)
+    if (!occasion) return ''
+    const [start, end] = resolveWindow(m, occasion)
+    return `${start}–${end}`
+  }
+
+  const selectedMoments = selected ? (byDate.get(selected) ?? []) : []
 
   return (
     <Screen title={t('history.title')}>
@@ -60,9 +75,9 @@ export function History() {
         <div className="mt-1 grid grid-cols-7 gap-1">
           {cells.map((date, i) => {
             if (!date) return <span key={`e${i}`} />
-            const plan = plansByDate.get(date)
-            const outfit = plan?.confirmedOutfitId ? outfitsById.get(plan.confirmedOutfitId) : undefined
-            const firstItem = outfit ? itemsById.get(outfit.slots.base ?? outfit.itemIds[0]) : undefined
+            const dayMoments = byDate.get(date) ?? []
+            const firstOutfit = dayMoments[0]?.confirmedOutfitId ? outfitsById.get(dayMoments[0].confirmedOutfitId as string) : undefined
+            const firstItem = firstOutfit ? itemsById.get(firstOutfit.slots.base ?? firstOutfit.itemIds[0]) : undefined
             const isFuture = date > today()
             return (
               <button
@@ -70,10 +85,15 @@ export function History() {
                 type="button"
                 disabled={isFuture}
                 onClick={() => setSelected(date)}
-                aria-label={`${formatDate(date, label.lang)}${outfit ? '' : `, ${t('history.notLogged')}`}`}
-                className={`flex aspect-square flex-col items-center justify-center rounded-lg text-xs ${outfit ? 'bg-[var(--bg)]' : ''} ${date === today() ? 'outline outline-2 outline-[var(--accent)]' : ''} disabled:opacity-30`}
+                aria-label={`${formatDate(date, label.lang)}${dayMoments.length ? `, ${t('history.outfits', { count: dayMoments.length })}` : `, ${t('history.notLogged')}`}`}
+                className={`relative flex aspect-square flex-col items-center justify-center rounded-lg p-0.5 text-xs ${dayMoments.length ? 'bg-[var(--bg)]' : ''} ${date === today() ? 'outline outline-2 outline-[var(--accent)]' : ''} disabled:opacity-30`}
               >
-                {firstItem ? <ItemThumb item={firstItem} size="sm" /> : <span>{Number(date.slice(8))}</span>}
+                {firstItem ? <ItemThumb item={firstItem} size="fill" /> : <span>{Number(date.slice(8))}</span>}
+                {dayMoments.length > 1 && (
+                  <span className="absolute right-0.5 top-0.5 rounded-full bg-[var(--accent)] px-1 text-[10px] font-semibold text-[var(--accent-fg)]" aria-hidden="true">
+                    {dayMoments.length}
+                  </span>
+                )}
               </button>
             )
           })}
@@ -83,27 +103,39 @@ export function History() {
       <Sheet open={!!selected} onClose={() => setSelected(null)} title={selected ? formatDate(selected, label.lang) : ''}>
         {selected && (
           <div className="pb-2">
-            {selectedOutfit ? (
-              <>
-                <p className="mb-2 text-sm text-[var(--muted)]">{label.occasion(selectedPlan?.occasionId ?? '')}</p>
-                <OutfitCard outfit={selectedOutfit} itemsById={itemsById} size="md" />
-                <div className="mt-4 flex gap-2">
-                  {selectedPlan?.rating ? (
-                    <span className="text-sm text-[var(--muted)]">{t('history.rating')}: {selectedPlan.rating === 'up' ? '👍' : '👎'}</span>
-                  ) : (
-                    <>
-                      <Button tone="secondary" onClick={() => void rateDay(selected, 'up')}>
-                        👍
-                      </Button>
-                      <Button tone="secondary" onClick={() => void rateDay(selected, 'down')}>
-                        👎
-                      </Button>
-                    </>
-                  )}
-                </div>
-              </>
+            {selectedMoments.length === 0 ? (
+              <p className="text-sm text-[var(--muted)]">
+                {t('history.notLogged')}. {t('history.logHint')}
+              </p>
             ) : (
-              <p className="text-sm text-[var(--muted)]">{t('history.notLogged')}. {t('history.logHint')}</p>
+              selectedMoments.map((m) => {
+                const outfit = m.confirmedOutfitId ? outfitsById.get(m.confirmedOutfitId) : undefined
+                if (!outfit) return null
+                return (
+                  <section key={m.id} className="mb-5">
+                    <p className="mb-2 text-sm text-[var(--muted)]">
+                      {label.occasion(m.occasionId)} · {hoursOf(m)}
+                    </p>
+                    <OutfitCard outfit={outfit} itemsById={itemsById} size="md" />
+                    <div className="mt-3 flex gap-2">
+                      {m.rating ? (
+                        <span className="text-sm text-[var(--muted)]">
+                          {t('history.rating')}: {m.rating === 'up' ? '👍' : '👎'}
+                        </span>
+                      ) : (
+                        <>
+                          <Button tone="secondary" onClick={() => void rateMoment(m.id, 'up')}>
+                            👍
+                          </Button>
+                          <Button tone="secondary" onClick={() => void rateMoment(m.id, 'down')}>
+                            👎
+                          </Button>
+                        </>
+                      )}
+                    </div>
+                  </section>
+                )
+              })
             )}
           </div>
         )}

@@ -80,11 +80,12 @@ export function rotationScores(
       // Nothing sits forgotten: an item never worn after two weeks of eligibility is always a strong candidate.
       if (item.wearCount === 0 && item.eligibleDays >= NEW_ITEM_DAYS) score = Math.max(score, 0.9)
 
+      // Worn today (an earlier moment of the same day) counts like worn yesterday.
       let cooldown = false
       if (item.lastWorn) {
         const since = daysBetween(item.lastWorn, date)
         const days = settings.cooldownDays[item.role] ?? 1
-        if (days > 0 && since >= 1 && since <= days) {
+        if (days > 0 && since >= 0 && since <= days) {
           cooldown = true
           score = Math.min(score, settings.cooldownScore[item.role] ?? 0)
         }

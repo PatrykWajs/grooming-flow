@@ -100,7 +100,7 @@ export function Wardrobe() {
             <li key={item.id} className="flex flex-col items-center gap-1">
               <ItemThumb
                 item={item}
-                size="md"
+                size="fill"
                 onClick={() => navigate({ name: 'item', id: item.id })}
                 badge={badge ? <span className="rounded-full bg-[var(--fg)] px-1.5 text-[10px] text-[var(--bg)]">{badge}</span> : undefined}
               />

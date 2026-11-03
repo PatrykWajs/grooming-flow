@@ -26,6 +26,12 @@ export function Onboarding() {
     navigate({ name: 'add' })
   }
 
+  /** No weekday defaults: every day asks what it is for. */
+  async function dayByDay() {
+    await updateSettings({ weekdayDefaults: { '0': '', '1': '', '2': '', '3': '', '4': '', '5': '', '6': '' } })
+    setStep(3)
+  }
+
   const steps = [
     {
       title: t('onboarding.install.title'),
@@ -42,7 +48,14 @@ export function Onboarding() {
     {
       title: t('onboarding.step2.title'),
       body: t('onboarding.step2.body'),
-      content: <WeekdayDefaults settings={settings} />,
+      content: (
+        <>
+          <WeekdayDefaults settings={settings} />
+          <Button tone="ghost" className="mt-3" onClick={() => void dayByDay()}>
+            {t('onboarding.step2.dayByDay')}
+          </Button>
+        </>
+      ),
       next: t('common.next'),
     },
     {
